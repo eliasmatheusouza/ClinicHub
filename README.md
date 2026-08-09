@@ -1,104 +1,146 @@
 # ClinicHub
 
-Plataforma de gestão de agendamentos e financeiro para clínicas médicas, construída como projeto de estudo de engenharia de software.
+Plataforma full stack de gestão de pacientes, consultas e financeiro para clínicas médicas. O projeto é um laboratório de arquitetura e práticas de engenharia: .NET 8, Angular standalone, Clean Architecture, mensageria, cache distribuído, observabilidade e CI/CD.
 
-O acompanhamento das etapas e suas validações está em [docs/plano-de-execucao.md](docs/plano-de-execucao.md).
+[![CI](https://github.com/eliasmatheusouza/ClinicHub/actions/workflows/ci.yml/badge.svg)](https://github.com/eliasmatheusouza/ClinicHub/actions/workflows/ci.yml)
 
-## Estrutura inicial
+## Arquitetura
 
-```text
-src/
-  ClinicHub.Domain/                  # Núcleo do domínio
-  ClinicHub.Application/             # Casos de uso e contratos
-  ClinicHub.Infrastructure/          # Persistência e integrações
-  ClinicHub.API/                     # API HTTP
-  ClinicHub.Notifications.Worker/    # Consumidor assíncrono
-tests/                               # Projetos de testes (próxima etapa)
-docs/adr/                            # Decisões arquiteturais
+```mermaid
+flowchart LR
+    Web["Angular 21"] -->|"JWT / REST"| Api["ASP.NET Core API"]
+    Api --> App["Application\nCQRS + MediatR"]
+    App --> Domain["Domain\nDDD"]
+    App --> Infra["Infrastructure"]
+    Infra --> Sql[("SQL Server")]
+    Infra --> Redis[("Redis")]
+    Infra --> MQ["RabbitMQ"]
+    MQ --> Worker["Notifications Worker"]
+    Api --> Seq["Seq"]
+    Worker --> Seq
 ```
 
-## Executar a infraestrutura local
+As camadas internas não dependem de HTTP, banco ou mensageria. Veja o desenho detalhado e os fluxos em [docs/arquitetura.md](docs/arquitetura.md).
 
-1. Copie `.env.example` para `.env`.
-2. Execute `docker compose up --build`.
-3. A API estará em `http://localhost:8082/health/live` e o RabbitMQ em `http://localhost:15672`.
+## Stack
 
-O cliente Angular está em `frontend/clinichub-web`. Para rodá-lo isoladamente, execute `npm start` nessa pasta e acesse `http://localhost:4200`. O Docker Compose também sobe o frontend no mesmo endereço.
+| Área | Tecnologias |
+|---|---|
+| Backend | .NET 8, ASP.NET Core, EF Core, Dapper, MediatR, FluentValidation |
+| Dados e integração | SQL Server, Redis, RabbitMQ |
+| Frontend | Angular 21 standalone, TypeScript, Angular Material |
+| Observabilidade | Serilog, Seq, Correlation ID e health checks |
+| Entrega | Docker Compose, GitHub Actions |
 
-## Banco de dados e migrations
+## Início rápido
 
-Após iniciar o SQL Server, aplique a migration inicial com:
+Pré-requisitos: Docker Desktop com Linux containers e Docker Compose.
 
 ```powershell
-dotnet ef database update --project src/ClinicHub.Infrastructure --startup-project src/ClinicHub.API --context ClinicHubDbContext
+Copy-Item .env.example .env
+docker compose up -d --build
+docker compose ps
 ```
 
-## Observabilidade
+| Serviço | Endereço |
+|---|---|
+| Aplicação Angular | http://localhost:4200 |
+| API | http://localhost:8082 |
+| Swagger / OpenAPI | http://localhost:8082/swagger |
+| Seq | http://localhost:8081 |
+| RabbitMQ Management | http://localhost:15672 |
 
-- Swagger (desenvolvimento): `http://localhost:8082/swagger`.
-- Liveness: `GET /health/live` — confirma que o processo está em execução.
-- Readiness: `GET /health/ready` — verifica SQL Server, Redis e RabbitMQ.
-- Envie `X-Correlation-ID` para correlacionar logs e respostas; caso ausente, a API gera um identificador.
-- Logs estruturados são emitidos no console e enviados ao Seq em `http://localhost:8081` quando a infraestrutura estiver ativa.
+O Compose aplica migrations e cria os usuários de desenvolvimento uma única vez.
 
-## Acesso de desenvolvimento
+| Perfil | E-mail | Senha |
+|---|---|---|
+| Admin | `admin@clinichub.local` | `Admin123!` |
+| Doctor | `doctor@clinichub.local` | `Doctor123!` |
 
-Ao iniciar pelo Docker Compose, as migrations são aplicadas e usuários Admin e Doctor de desenvolvimento são criados uma única vez. As credenciais vêm das variáveis `SEED_ADMIN_*` e `SEED_DOCTOR_*` no `.env` (os valores de exemplo são apenas para ambiente local). Autentique-se em `POST /api/auth/login` e use o access token como `Bearer` no Swagger.
+As credenciais são exclusivamente locais e podem ser alteradas no `.env`. Informações de portas, logs, health checks, reset de infraestrutura e SMTP estão em [docs/operacao-local.md](docs/operacao-local.md).
 
-## Cadastro e confirmação de e-mail
+## Módulos
 
-A tela `http://localhost:4200/register` cria uma conta com o perfil `Patient`, inicialmente inativa. A senha precisa ter pelo menos oito caracteres, incluindo letra maiúscula, minúscula e número. A ativação acontece pelo link enviado por e-mail e, até isso ocorrer, o login é recusado.
+- **Autenticação:** JWT de curta duração, refresh token rotativo e autorização por role.
+- **Cadastro público:** rota `/register`, confirmação por e-mail e ativação de conta `Patient` por token de uso único.
+- **Pacientes:** CRUD, filtros, paginação e cache Redis versionado.
+- **Agenda:** criar, confirmar, reagendar e cancelar; conflitos de horários são regras de domínio.
+- **Notificações:** confirmação de consulta publica evento no RabbitMQ; worker consome a fila durável.
+- **Financeiro:** pagamento por consulta confirmada e relatório de receita por período usando Dapper.
 
-- `POST /api/auth/register` — recebe `email`, `password` e `confirmPassword` e retorna `202 Accepted`.
-- `POST /api/auth/confirm-email` — recebe o token presente no link e ativa a conta.
+## Desenvolvimento sem Docker
 
-Em desenvolvimento, `EMAIL_DELIVERY_MODE=Log` registra o link de confirmação no log da API. Para envio real, configure no `.env` `EMAIL_DELIVERY_MODE=Smtp`, `EMAIL_FROM`, `EMAIL_SMTP_HOST`, `EMAIL_SMTP_PORT`, `EMAIL_SMTP_USE_SSL`, `EMAIL_SMTP_USERNAME` e `EMAIL_SMTP_PASSWORD`. O token bruto não é persistido: somente seu hash SHA-256 é armazenado, com validade de 24 horas.
-
-## Pacientes
-
-Todos os endpoints exigem JWT. `Admin` e `Receptionist` podem criar/alterar; somente `Admin` pode desativar; `Doctor` pode consultar.
-
-- `POST /api/patients` — cria um paciente.
-- `GET /api/patients?term=&page=1&pageSize=20` — lista pacientes ativos, filtrando por nome ou e-mail.
-- `GET /api/patients/{id}` — consulta um paciente.
-- `PUT /api/patients/{id}` — altera dados cadastrais.
-- `DELETE /api/patients/{id}` — desativa logicamente o paciente.
-
-As listagens são armazenadas no Redis por cinco minutos e invalidadas por versão após qualquer alteração de paciente. Se Redis estiver indisponível, a consulta continua diretamente no SQL Server.
-
-## Agendamentos e notificações
-
-`Admin` e `Receptionist` podem agendar, confirmar, reagendar e cancelar consultas.
-
-- `POST /api/appointments` — agenda para um paciente e médico existentes.
-- `POST /api/appointments/{id}/confirm` — confirma e publica `appointment.confirmed`.
-- `PUT /api/appointments/{id}/schedule` — reagenda, reaplicando a regra de conflito.
-- `POST /api/appointments/{id}/cancel` — cancela com motivo obrigatório.
-
-A confirmação só é aceita para horários futuros. O intervalo do médico é validado contra consultas não canceladas. Após a confirmação ser persistida, um evento de domínio percorre o MediatR, é publicado no exchange RabbitMQ `clinichub.appointments` e consumido pelo worker, que registra a simulação da notificação em log estruturado.
-
-## Financeiro
-
-- `POST /api/payments` — registra um pagamento para uma consulta confirmada. Aceita `AppointmentId`, `Amount`, `Currency` e `Method` (enum de `PaymentMethod`).
-- `GET /api/financial/revenue?startDate=2026-08-01&endDate=2026-08-31` — relatório de faturamento, exclusivo de `Admin`.
-
-O registro de pagamento impede duplicidade por consulta. O relatório é uma query Dapper otimizada, agregada por dia e moeda.
-
-## Testes
+Backend:
 
 ```powershell
-dotnet test ClinicHub.sln --no-restore
-dotnet test ClinicHub.sln --no-restore --collect "XPlat Code Coverage"
+dotnet restore ClinicHub.sln
+dotnet run --project src/ClinicHub.API
 ```
 
-Há projetos separados para testes de Domain, Application, Infrastructure e integração da API. A cobertura de Domain/Application é aferida durante a etapa de testes e só será confirmada ao atingir a meta de 70%.
+Frontend:
+
+```powershell
+Set-Location frontend/clinichub-web
+npm ci
+npm start
+```
+
+Para executar localmente fora do Compose, ajuste as connection strings de `appsettings.Development.json` para serviços disponíveis. O padrão do projeto usa Redis em `localhost:6380` e API publicada em `localhost:8082`, evitando conflito com outros projetos locais.
+
+## API e autenticação
+
+Todos os contratos estão disponíveis no Swagger. Há exemplos de payload diretamente na interface para login, cadastro, pacientes, consultas e pagamentos.
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{ "email": "admin@clinichub.local", "password": "Admin123!" }
+```
+
+Envie o `accessToken` recebido como `Authorization: Bearer {token}`. Para exemplos completos, roles e respostas de erro, consulte [docs/api-examples.md](docs/api-examples.md).
+
+### Confirmação de e-mail
+
+Novas contas públicas ficam inativas até a confirmação. No desenvolvimento, `EMAIL_DELIVERY_MODE=Log` escreve o link no log da API. Para SMTP real, altere para `Smtp` e configure as variáveis `EMAIL_*` presentes no `.env.example`. O token bruto não é persistido; somente seu hash SHA-256, por até 24 horas.
+
+## Qualidade
+
+```powershell
+dotnet format ClinicHub.sln --verify-no-changes --no-restore
+dotnet test ClinicHub.sln --configuration Release --no-restore --collect "XPlat Code Coverage"
+
+Set-Location frontend/clinichub-web
+npm run lint
+npm run build
+npm test -- --watch=false
+```
+
+A suíte atual contém 35 testes e a cobertura aferida para Domain/Application é superior a 70%.
 
 ## CI/CD
 
-O workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) executa em todo `push`, `pull request` e disparo manual. Ele possui três jobs:
+O workflow [CI](.github/workflows/ci.yml) é executado em todo push, pull request e disparo manual. Ele valida formatação, build Release, testes e cobertura .NET; análise TypeScript, build e testes Angular; além da especificação e imagens Docker. A primeira execução remota foi aprovada: [ver execução](https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31289372213).
 
-- **Backend:** restauração, formatação/análise estática, build Release, testes e artefato de cobertura.
-- **Frontend:** instalação determinística (`npm ci`), análise TypeScript, build e testes Angular.
-- **Docker:** validação do Compose e construção das imagens da API, worker e frontend.
+## Documentação
 
-A primeira execução remota ocorrerá automaticamente quando o repositório for enviado ao GitHub.
+- [Plano de execução e evidências](docs/plano-de-execucao.md)
+- [Arquitetura e fluxos](docs/arquitetura.md)
+- [Modelo de domínio](docs/modelo-do-dominio.md)
+- [Operação local](docs/operacao-local.md)
+- [Guia da API](docs/api-examples.md)
+- [Architecture Decision Records](docs/adr)
+
+## Estrutura do repositório
+
+```text
+src/
+  ClinicHub.Domain/                  # Agregados, VOs, eventos e contratos
+  ClinicHub.Application/             # CQRS, handlers, DTOs e validações
+  ClinicHub.Infrastructure/          # EF Core, Redis, RabbitMQ, Dapper e segurança
+  ClinicHub.API/                     # REST, Swagger, middleware e health checks
+  ClinicHub.Notifications.Worker/    # Consumidor RabbitMQ
+frontend/clinichub-web/              # SPA Angular standalone
+tests/                                # Testes de domínio, aplicação, infraestrutura e API
+docs/                                 # Arquitetura, operação, API e ADRs
+```

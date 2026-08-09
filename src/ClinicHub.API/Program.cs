@@ -2,6 +2,7 @@ using System.Text.Json;
 using ClinicHub.API.ExceptionHandling;
 using ClinicHub.API.HealthChecks;
 using ClinicHub.API.Middleware;
+using ClinicHub.API.Swagger;
 using ClinicHub.Application.DependencyInjection;
 using ClinicHub.Infrastructure.DependencyInjection;
 using ClinicHub.Infrastructure.Persistence;
@@ -42,6 +43,7 @@ try
     builder.Services.AddSwaggerGen(options =>
     {
         options.SwaggerDoc("v1", new() { Title = "ClinicHub API", Version = "v1" });
+        options.OperationFilter<RequestExampleOperationFilter>();
         options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
             Name = "Authorization",

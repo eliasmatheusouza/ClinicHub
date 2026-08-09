@@ -18,7 +18,7 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 10 | Testes automatizados | ✅ Concluída | Testes unitários e de integração implementados; cobertura aferida em 70,0% no Domain e 72,9% na Application. |
 | 11 | Frontend Angular | ✅ Concluída | SPA standalone integrada à API: autenticação, CRUD de pacientes, operações de agenda, pagamentos, relatório e layout responsivo validados. |
 | 12 | CI/CD | ✅ Concluída | Pipeline GitHub Actions validada local e remotamente: build, testes, análise estática, cobertura e imagens Docker. |
-| 13 | Documentação final | ⬜ Pendente | README final, diagrama Mermaid, ADRs e exemplos Swagger revisados. |
+| 13 | Documentação final | ✅ Concluída | README, diagramas Mermaid, guia operacional/API, ADRs e exemplos Swagger implementados e validados. |
 
 ## Registro de confirmações
 
@@ -165,6 +165,17 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 - O job Docker valida a especificação do Compose e constrói as imagens da API, worker e frontend após os jobs de código.
 - Validação local concluída com sucesso usando os mesmos comandos: formatação .NET, build Release, 35 testes com cobertura, análise/build/teste Angular, `docker compose ... config --quiet` e `docker compose ... build`.
 - Repositório público criado em `https://github.com/eliasmatheusouza/ClinicHub`. A primeira execução remota do workflow foi concluída com sucesso: backend, frontend e build das imagens Docker aprovados. Evidência: `https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31289372213`.
+
+### Etapa 13 — Documentação final
+
+**Confirmada em 09/08/2026.**
+
+- README reestruturado como porta de entrada: arquitetura Mermaid, stack, execução local, credenciais de desenvolvimento, módulos, qualidade, CI/CD e estrutura do repositório.
+- Criados `docs/arquitetura.md`, `docs/operacao-local.md` e `docs/api-examples.md`, cobrindo limites das camadas, fluxos assíncronos, segurança, troubleshooting, endereços locais, SMTP e exemplos de consumo da API.
+- Atualizado o modelo de domínio com `User`, `RefreshToken`, confirmação de e-mail, regras financeiras e diagrama entidade-relacionamento Mermaid.
+- Registradas cinco ADRs: Clean Architecture/CQRS, Redis distribuído, RabbitMQ assíncrono, Dapper para relatórios e confirmação de e-mail por token hash.
+- Swagger/OpenAPI recebeu exemplos de payload para login, cadastro, confirmação de e-mail, refresh, pacientes, agenda e pagamentos; validado em execução em `http://localhost:8082/swagger/v1/swagger.json`.
+- Verificações executadas: build e formatação .NET, 35 testes automatizados, análise/build/teste Angular e verificação dos artefatos documentais, todas concluídas com sucesso.
 
 ## Regra de atualização
 
