@@ -185,3 +185,16 @@ Ao fim de cada etapa, este documento receberá:
 2. a data de confirmação;
 3. os artefatos implementados;
 4. os comandos, testes ou evidências usados na validação.
+
+## Próximas evoluções pós-MVP
+
+As treze etapas originais estão concluídas. Os itens abaixo não alteram esse histórico; representam a continuidade recomendada, em ordem de prioridade.
+
+| Prioridade | Evolução | Objetivo |
+|---:|---|---|
+| 1 | Qualidade e segurança | Restaurar a cobertura mínima de 70%, testar os fluxos novos de autenticação, atualizar dependências vulneráveis, adicionar rate limiting, HTTPS e secrets de produção. |
+| 2 | Resiliência assíncrona | Implementar retry de conexão, DLQ e monitoramento do worker RabbitMQ; disponibilizar reenvio de confirmação de e-mail. |
+| 3 | Deploy público | Externalizar a configuração da URL da API, publicar imagens em registry e implantar frontend, API e infraestrutura. |
+| 4 | Gestão de equipe | Criar convites e administração de médicos e recepcionistas com roles e auditoria. |
+| 5 | Portal do paciente | Expor somente os dados do paciente autenticado e permitir consultar, cancelar e reagendar consultas próprias. |
+| 6 | Notificações e produto | Integrar e-mail/SMS/WhatsApp reais, indicadores operacionais, disponibilidade médica e dashboard com dados reais. |
