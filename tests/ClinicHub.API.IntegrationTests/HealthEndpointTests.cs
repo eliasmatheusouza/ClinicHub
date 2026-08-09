@@ -1,0 +1,46 @@
+using System.Net;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
+
+namespace ClinicHub.API.IntegrationTests;
+
+public sealed class HealthEndpointTests : IClassFixture<ClinicHubApiFactory>
+{
+    private readonly HttpClient _client;
+
+    public HealthEndpointTests(ClinicHubApiFactory factory)
+    {
+        _client = factory.CreateClient();
+    }
+
+    [Fact]
+    public async Task Liveness_ReturnsOkAndEchoesCorrelationId()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/health/live");
+        request.Headers.Add("X-Correlation-ID", "integration-test-correlation");
+
+        var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True(response.Headers.TryGetValues("X-Correlation-ID", out var values));
+        Assert.Contains("integration-test-correlation", values);
+    }
+}
+
+public sealed class ClinicHubApiFactory : WebApplicationFactory<Program>
+{
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.UseEnvironment("Testing");
+        builder.ConfigureAppConfiguration(configurationBuilder => configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["ConnectionStrings:SqlServer"] = "Server=localhost;Database=ClinicHubTests;User Id=sa;Password=ClinicHub_dev_2026!;TrustServerCertificate=True",
+            ["ConnectionStrings:Redis"] = "localhost:6379,abortConnect=false",
+            ["RabbitMq:ConnectionString"] = "amqp://clinichub:clinichub-dev@localhost:5672",
+            ["Jwt:Issuer"] = "ClinicHub",
+            ["Jwt:Audience"] = "ClinicHub.Web",
+            ["Jwt:Key"] = "integration-test-key-with-at-least-32-characters"
+        }));
+    }
+}

@@ -1,0 +1,24 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav mode="side" opened class="sidebar">
+    <div class="brand"><mat-icon>local_hospital</mat-icon><span>ClinicHub</span></div>
+    <mat-nav-list>
+      <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link"><mat-icon matListItemIcon>space_dashboard</mat-icon>Dashboard</a>
+      @if (auth.role() !== 'Patient') {
+        <a mat-list-item routerLink="/patients" routerLinkActive="active-link"><mat-icon matListItemIcon>people</mat-icon>Pacientes</a>
+        <a mat-list-item routerLink="/appointments" routerLinkActive="active-link"><mat-icon matListItemIcon>calendar_month</mat-icon>Agendamentos</a>
+        @if (auth.role() === 'Admin') {
+          <a mat-list-item routerLink="/financial" routerLinkActive="active-link"><mat-icon matListItemIcon>payments</mat-icon>Financeiro</a>
+        }
+      }
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary">
+      <span class="toolbar-spacer"></span>
+      <span class="role">{{ auth.role() ?? 'Usuário' }}</span>
+      <button mat-icon-button aria-label="Sair" (click)="auth.logout()"><mat-icon>logout</mat-icon></button>
+    </mat-toolbar>
+    <main class="content"><router-outlet /></main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

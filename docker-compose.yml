@@ -1,0 +1,141 @@
+name: clinichub
+
+services:
+  frontend:
+    build:
+      context: ./frontend/clinichub-web
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      api:
+        condition: service_started
+    networks:
+      - clinichub
+
+  api:
+    build:
+      context: .
+      dockerfile: src/ClinicHub.API/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__SqlServer: Server=sqlserver,1433;Database=ClinicHub;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
+      ConnectionStrings__Redis: redis:6379
+      RabbitMq__ConnectionString: amqp://${RABBITMQ_USER:-clinichub}:${RABBITMQ_PASSWORD:-clinichub-dev}@rabbitmq:5672
+      Seq__ServerUrl: http://seq:5341
+      Jwt__Issuer: ClinicHub
+      Jwt__Audience: ClinicHub.Web
+      Jwt__Key: ${JWT_KEY}
+      Database__AutoMigrate: "true"
+      Seed__Enabled: "true"
+      Seed__AdminEmail: ${SEED_ADMIN_EMAIL:-admin@clinichub.local}
+      Seed__AdminPassword: ${SEED_ADMIN_PASSWORD}
+      Seed__DoctorEmail: ${SEED_DOCTOR_EMAIL:-doctor@clinichub.local}
+      Seed__DoctorPassword: ${SEED_DOCTOR_PASSWORD}
+      EmailConfirmation__FrontendUrl: http://localhost:4200
+      Email__DeliveryMode: ${EMAIL_DELIVERY_MODE:-Log}
+      Email__From: ${EMAIL_FROM:-no-reply@clinichub.local}
+      Email__Smtp__Host: ${EMAIL_SMTP_HOST:-}
+      Email__Smtp__Port: ${EMAIL_SMTP_PORT:-587}
+      Email__Smtp__UseSsl: ${EMAIL_SMTP_USE_SSL:-true}
+      Email__Smtp__Username: ${EMAIL_SMTP_USERNAME:-}
+      Email__Smtp__Password: ${EMAIL_SMTP_PASSWORD:-}
+    ports:
+      - "8082:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - clinichub
+
+  notifications-worker:
+    build:
+      context: .
+      dockerfile: src/ClinicHub.Notifications.Worker/Dockerfile
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      ConnectionStrings__SqlServer: Server=sqlserver,1433;Database=ClinicHub;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
+      ConnectionStrings__Redis: redis:6379
+      RabbitMq__ConnectionString: amqp://${RABBITMQ_USER:-clinichub}:${RABBITMQ_PASSWORD:-clinichub-dev}@rabbitmq:5672
+      Seq__ServerUrl: http://seq:5341
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - clinichub
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+    networks:
+      - clinichub
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - clinichub
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-clinichub}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-clinichub-dev}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - clinichub
+
+  seq:
+    image: datalust/seq:2024.3
+    environment:
+      ACCEPT_EULA: "Y"
+    ports:
+      - "5341:5341"
+      - "8081:80"
+    volumes:
+      - seq-data:/data
+    networks:
+      - clinichub
+
+networks:
+  clinichub:
+    driver: bridge
+
+volumes:
+  sqlserver-data:
+  redis-data:
+  rabbitmq-data:
+  seq-data:

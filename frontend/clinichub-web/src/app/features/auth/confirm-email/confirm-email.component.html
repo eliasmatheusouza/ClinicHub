@@ -1,0 +1,9 @@
+<div class="auth-page">
+  <mat-card>
+    <mat-card-header><mat-icon>mark_email_read</mat-icon><mat-card-title>Confirmar e-mail</mat-card-title><mat-card-subtitle>Ative sua conta ClinicHub</mat-card-subtitle></mat-card-header>
+    <mat-card-content>
+      @if (message) { <p class="success">{{ message }}</p><a mat-flat-button color="primary" routerLink="/login">Entrar</a> }
+      @else { @if (error) { <p class="error">{{ error }}</p> } <button mat-flat-button color="primary" type="button" (click)="confirm()" [disabled]="loading">{{ loading ? 'Confirmando...' : 'Confirmar meu e-mail' }}</button> }
+    </mat-card-content>
+  </mat-card>
+</div>

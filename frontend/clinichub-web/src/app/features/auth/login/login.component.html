@@ -1,0 +1,14 @@
+<div class="login-page">
+  <mat-card>
+    <mat-card-header><mat-icon>local_hospital</mat-icon><mat-card-title>ClinicHub</mat-card-title><mat-card-subtitle>Acesse a gestão da sua clínica</mat-card-subtitle></mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline"><mat-label>E-mail</mat-label><input matInput formControlName="email" type="email" autocomplete="email"><mat-icon matSuffix>mail</mat-icon></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Senha</mat-label><input matInput formControlName="password" type="password" autocomplete="current-password"><mat-icon matSuffix>lock</mat-icon></mat-form-field>
+        @if (error) { <p class="error">{{ error }}</p> }
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading">{{ loading ? 'Entrando...' : 'Entrar' }}</button>
+        <a routerLink="/register">Ainda não tem conta? Cadastre-se</a>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

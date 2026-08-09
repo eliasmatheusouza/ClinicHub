@@ -1,0 +1,2 @@
+.auth-page { min-height: 100vh; display: grid; place-items: center; padding: 1.5rem; background: linear-gradient(145deg, #e8f0fe, #f8faff); }
+mat-card { width: min(100%, 420px); padding: 1rem; } mat-card-header { margin-bottom: 1.25rem; } mat-card-header mat-icon { color: #0b57d0; margin-right: .5rem; } button, a { width: 100%; } .error { color: #ba1a1a; } .success { color: #146c2e; line-height: 1.5; }
