@@ -140,6 +140,7 @@ O escopo original foi concluído. A evolução recomendada para transformar o pr
 - [Modelo de domínio](docs/modelo-do-dominio.md)
 - [Operação local](docs/operacao-local.md)
 - [Guia da API](docs/api-examples.md)
+- [Guia de estudo passo a passo](docs/guia-de-estudo.md)
 - [Architecture Decision Records](docs/adr)
 
 ## Estrutura do repositório
