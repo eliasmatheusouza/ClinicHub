@@ -17,7 +17,7 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 9 | Módulo Financeiro | ✅ Concluída | Registro de pagamentos e relatório por período com consulta Dapper implementados e validados por build/Compose. |
 | 10 | Testes automatizados | ✅ Concluída | Testes unitários e de integração implementados; cobertura aferida em 70,0% no Domain e 72,9% na Application. |
 | 11 | Frontend Angular | ✅ Concluída | SPA standalone integrada à API: autenticação, CRUD de pacientes, operações de agenda, pagamentos, relatório e layout responsivo validados. |
-| 12 | CI/CD | 🟨 Em andamento | Workflow GitHub Actions criado e validado localmente; aguarda primeira execução remota para confirmação. |
+| 12 | CI/CD | ✅ Concluída | Pipeline GitHub Actions validada local e remotamente: build, testes, análise estática, cobertura e imagens Docker. |
 | 13 | Documentação final | ⬜ Pendente | README final, diagrama Mermaid, ADRs e exemplos Swagger revisados. |
 
 ## Registro de confirmações
@@ -155,14 +155,16 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 - Validação ponta a ponta executada no Compose: frontend (`HTTP 200`), readiness da API (`HTTP 200`), preflight CORS para `http://localhost:4200` (`HTTP 204`), login e rotação de refresh token, listagem de médicos, criação/listagem de paciente, agendamento/confirmação, pagamento e relatório de receita. O worker também registrou o consumo do evento de confirmação no RabbitMQ.
 - Para coexistir com outros projetos locais, a API é publicada em `localhost:8082` e o Redis em `localhost:6380`; a comunicação entre contêineres permanece em `api:8080` e `redis:6379`.
 
-### Etapa 12 — CI/CD (em andamento)
+### Etapa 12 — CI/CD
+
+**Confirmada em 08/08/2026.**
 
 - Criado o workflow `.github/workflows/ci.yml`, acionado por `push`, pull request e disparo manual.
 - O job de backend executa restore, `dotnet format --verify-no-changes`, build Release, testes e coleta/publicação do artefato de cobertura.
 - O job de frontend usa Node 22.20.0, `npm ci`, análise TypeScript (`npm run lint`), build e testes Angular.
 - O job Docker valida a especificação do Compose e constrói as imagens da API, worker e frontend após os jobs de código.
 - Validação local concluída com sucesso usando os mesmos comandos: formatação .NET, build Release, 35 testes com cobertura, análise/build/teste Angular, `docker compose ... config --quiet` e `docker compose ... build`.
-- Pendente apenas a primeira execução no GitHub, que depende de um repositório remoto; após o workflow concluir com sucesso, esta etapa será marcada como concluída.
+- Repositório público criado em `https://github.com/eliasmatheusouza/ClinicHub`. A primeira execução remota do workflow foi concluída com sucesso: backend, frontend e build das imagens Docker aprovados. Evidência: `https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31289372213`.
 
 ## Regra de atualização
 
