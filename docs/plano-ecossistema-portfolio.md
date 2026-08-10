@@ -138,6 +138,8 @@ Itens genéricos sem diferencial — como um wrapper obrigatório de resposta �
 | Narrativa | Post ou página de portfólio explicando problema, decisão difícil, trade-off e resultado de cada projeto. |
 | Demonstração | Ambientes publicados quando houver orçamento e segurança adequados; caso contrário, vídeo e Compose local são suficientes. |
 
+Antes de qualquer publicação, siga o [guia AWS de aprendizado gratuito e seguro](aws-aprendizado-gratuito.md). Ele trata IAM, MFA, orçamento, Free Tier, laboratórios efêmeros e o limite entre experimentar na nuvem e operar um sistema com dados sensíveis.
+
 ## Sequência sugerida
 
 ```mermaid
