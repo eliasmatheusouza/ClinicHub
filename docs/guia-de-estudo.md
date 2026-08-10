@@ -207,13 +207,13 @@ npm test -- --watch=false
 
 O GitHub Actions reproduz essas verificações. Leia [ci.yml](../.github/workflows/ci.yml) e compare cada job com os comandos acima.
 
-> Atenção: a aferição atual da auditoria encontrou 68,36% no Domain e 67,14% na Application. A meta de 70% precisa ser restaurada adicionando testes aos fluxos novos de cadastro e confirmação de e-mail.
+> Atualização da etapa 14: os testes de cadastro e confirmação de e-mail elevaram a cobertura para 74,57% no Domain e 74,76% na Application. O próximo aprendizado é transformar essa meta em um gate obrigatório da CI.
 
 ## 11. Exercícios de evolução
 
 Depois de compreender o fluxo existente, implemente um item de cada vez:
 
-1. Escreva testes para `RegisterAccountCommandHandler` e `ConfirmEmailCommandHandler` até recuperar 70% de cobertura.
+1. Estude os testes de `RegisterAccountCommandHandler` e `ConfirmEmailCommandHandler`; depois adicione um cenário de falha no envio de e-mail e discuta a decisão de consistência adequada.
 2. Adicione endpoint de reenvio de confirmação com limite de tentativas.
 3. Crie uma DLQ no RabbitMQ e evite descartar mensagens que falham no worker.
 4. Adicione guard de role no Angular, mantendo a API como fonte real de autorização.

@@ -30,8 +30,11 @@ jobs:
       - name: Build
         run: dotnet build ClinicHub.sln --configuration Release --no-restore
 
-      - name: Test with coverage
-        run: dotnet test ClinicHub.sln --configuration Release --no-restore --collect "XPlat Code Coverage"
+      - name: Test with coverage and quality gate
+        shell: pwsh
+        run: |
+          dotnet test ClinicHub.sln --configuration Release --no-restore --collect "XPlat Code Coverage"
+          ./scripts/Verify-Coverage.ps1 -MinimumLineRate 70
 
       - name: Publish coverage artifact
         uses: actions/upload-artifact@v4

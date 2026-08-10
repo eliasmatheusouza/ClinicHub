@@ -116,7 +116,7 @@ npm run build
 npm test -- --watch=false
 ```
 
-A suíte atual contém 35 testes. A aferição histórica do encerramento da etapa 10 superou 70%, mas uma auditoria posterior identificou regressão de cobertura nos fluxos novos; a restauração da meta está registrada nas próximas evoluções e na avaliação de maturidade.
+A suíte atual contém 42 testes. Após os testes de cadastro e confirmação de e-mail da etapa 14, a cobertura aferida é de 74,57% no Domain e 74,76% na Application. A próxima etapa torna essa meta um gate obrigatório da CI.
 
 ## CI/CD
 
@@ -126,7 +126,7 @@ O workflow [CI](.github/workflows/ci.yml) é executado em todo push, pull reques
 
 O escopo original foi concluído. A evolução recomendada para transformar o projeto em uma aplicação pronta para uso segue esta ordem:
 
-1. **Qualidade e segurança:** restaurar a meta de cobertura de 70%, testar cadastro/confirmação de e-mail, corrigir dependências vulneráveis, aplicar rate limiting, HTTPS e gestão de secrets.
+1. **Qualidade e segurança:** tornar a meta de cobertura de 70% obrigatória na CI, corrigir dependências vulneráveis, aplicar rate limiting, HTTPS e gestão de secrets.
 2. **Resiliência:** adicionar retry de conexão, DLQ e observabilidade para o worker RabbitMQ; criar reenvio de confirmação de e-mail para contas pendentes.
 3. **Produção:** tornar a URL da API configurável em runtime, publicar imagens em registry e implantar frontend, API e infraestrutura em ambiente público.
 4. **Gestão de equipe:** permitir que administradores criem e gerenciem médicos e recepcionistas com fluxo seguro de convite.
@@ -143,6 +143,7 @@ O escopo original foi concluído. A evolução recomendada para transformar o pr
 - [Guia de estudo passo a passo](docs/guia-de-estudo.md)
 - [Avaliação de maturidade arquitetural](docs/avaliacao-de-maturidade.md)
 - [Plano do ecossistema de portfólio](docs/plano-ecossistema-portfolio.md)
+- [Trilha de qualidade e Platform Engineering](docs/plano-de-execucao.md#trilha-de-qualidade-e-platform-engineering)
 - [Architecture Decision Records](docs/adr)
 
 ## Estrutura do repositório

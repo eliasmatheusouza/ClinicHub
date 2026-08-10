@@ -19,6 +19,11 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 11 | Frontend Angular | ✅ Concluída | SPA standalone integrada à API: autenticação, CRUD de pacientes, operações de agenda, pagamentos, relatório e layout responsivo validados. |
 | 12 | CI/CD | ✅ Concluída | Pipeline GitHub Actions validada local e remotamente: build, testes, análise estática, cobertura e imagens Docker. |
 | 13 | Documentação final | ✅ Concluída | README, diagramas Mermaid, guia operacional/API, ADRs e exemplos Swagger implementados e validados. |
+| 14 | Testes de fluxos críticos | ✅ Concluída | Testes AAA para cadastro/confirmação de e-mail e regras do agregado `User`; cobertura restaurada para 74,57% no Domain e 74,76% na Application. |
+| 15 | Gate de cobertura | ✅ Concluída | Script de quality gate integrado à CI; falha abaixo de 70% nas camadas Domain e Application. |
+| 16 | Relatórios e auditorias de CI | ⬜ Pendente | Publicar resultados de testes e executar auditorias de dependências e análise de segurança. |
+| 17 | Análise estática e Quality Gate | ⬜ Pendente | Integrar SonarQube/SonarCloud e validar qualidade de código novo na pipeline. |
+| 18 | Governança de pull requests | ⬜ Pendente | Proteger `main`, exigir checks aprovados e impedir merge fora do fluxo de revisão. |
 
 ## Registro de confirmações
 
@@ -200,6 +205,40 @@ As treze etapas originais estão concluídas. Os itens abaixo não alteram esse 
 | 4 | Gestão de equipe | Criar convites e administração de médicos e recepcionistas com roles e auditoria. |
 | 5 | Portal do paciente | Expor somente os dados do paciente autenticado e permitir consultar, cancelar e reagendar consultas próprias. |
 | 6 | Notificações e produto | Integrar e-mail/SMS/WhatsApp reais, indicadores operacionais, disponibilidade médica e dashboard com dados reais. |
+
+## Trilha de qualidade e Platform Engineering
+
+As etapas 14 a 18 aplicam ao ClinicHub os conceitos de AAA, FIRST, isolamento por mocks/stubs, cenários de borda, Shift-Left Testing, cobertura, SAST e quality gates. Elas não substituem as treze etapas originais: aprofundam a maturidade de engenharia do projeto.
+
+| Etapa | Objetivo | Evidência de conclusão |
+|---:|---|---|
+| 14 | Cobrir os fluxos críticos novos e tornar a intenção dos testes explícita | Testes de sucesso, erro e borda para registro/confirmação; cobertura atualizada e meta de 70% restaurada. |
+| 15 | Impedir regressão de cobertura | Job de CI falha abaixo do limiar acordado; relatório Cobertura fica disponível como artefato. |
+| 16 | Dar feedback rápido sobre qualidade e riscos de dependência | Resultados de teste aparecem no PR; `dotnet`/NPM audit e análise de segurança executam na CI. |
+| 17 | Analisar código novo com Quality Gate | Sonar configurado; novos bugs, vulnerabilidades, duplicação e cobertura insuficiente bloqueiam o job. |
+| 18 | Tornar os checks obrigatórios antes do merge | `main` protegida, revisão e checks de backend/frontend/Docker/segurança obrigatórios. |
+
+**Princípio de implementação:** o gate será progressivo. A cobertura total começa na meta histórica de 70% para Domain/Application; o objetivo de 80% será aplicado ao código novo quando a infraestrutura de medição por pull request estiver configurada. Isso evita testes artificiais apenas para elevar uma métrica global.
+
+### Etapa 15 — Gate de cobertura
+
+**Confirmada em 10/08/2026.**
+
+- Criado `scripts/Verify-Coverage.ps1`, que localiza os relatórios Cobertura mais recentes de Domain e Application, informa a cobertura de linhas e encerra com código diferente de zero abaixo da meta.
+- O job de backend da GitHub Actions passou a executar a suíte completa com coleta de cobertura e o script com a meta mínima de 70%.
+- A regra cobre somente Domain/Application neste momento: são as camadas com regras de negócio e cobertura representativa. Infrastructure/API continuarão com seus testes, sem uma meta artificial até que a estratégia de testes de integração seja ampliada.
+- Validação executada: 42 testes da solution aprovados; gate aprovado com 74,57% no Domain e 74,76% na Application. Também foi validado que a execução com limiar de 75% falha.
+
+### Etapa 14 — Testes de fluxos críticos
+
+**Confirmada em 10/08/2026.**
+
+- Foco inicial: `RegisterAccountCommandHandler`, `ConfirmEmailCommandHandler`, validators associados e regras do agregado `User` para confirmação de e-mail.
+- Os testes adotam o padrão Arrange–Act–Assert: preparar dependências e dados determinísticos, executar um único comportamento e afirmar tanto o resultado como as interações indispensáveis.
+- Mocks são usados para repositórios, hash de senha, token, envio de e-mail e Unit of Work; `FixedClock` é um stub determinístico do relógio.
+- Os cenários incluem sucesso, e-mail já cadastrado, token inválido, token expirado e token já utilizado.
+- Foram adicionados 7 testes: 3 de domínio para consumo/expiração/reuso do token e 4 de Application para registro e confirmação de e-mail.
+- Validações executadas: `dotnet format ClinicHub.sln --verify-no-changes --no-restore`, 18 testes de Domain e 22 de Application aprovados. A nova aferição de cobertura atingiu 74,57% de linhas no Domain e 74,76% na Application, acima da meta de 70%.
 
 ## Ecossistema de portfólio
 

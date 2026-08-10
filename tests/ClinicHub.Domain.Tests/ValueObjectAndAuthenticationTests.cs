@@ -73,6 +73,65 @@ public sealed class ValueObjectAndAuthenticationTests
     }
 
     [Fact]
+    public void ConfirmEmail_WhenPendingTokenIsValid_ActivatesUserAndConsumesToken()
+    {
+        var user = User.CreatePending(
+            Guid.NewGuid(),
+            EmailAddress.Create("patient@clinichub.local").Value!,
+            "hash",
+            UserRole.Patient,
+            "confirmation-hash",
+            Now.AddHours(24),
+            Now).Value!;
+
+        var result = user.ConfirmEmail("confirmation-hash", Now.AddMinutes(1));
+
+        Assert.True(result.IsSuccess);
+        Assert.True(user.IsActive);
+        Assert.Equal(Now.AddMinutes(1), user.EmailConfirmedAtUtc);
+        Assert.Null(user.EmailConfirmationTokenHash);
+        Assert.Null(user.EmailConfirmationExpiresAtUtc);
+    }
+
+    [Fact]
+    public void ConfirmEmail_WhenTokenIsExpired_ReturnsExpiryNotification()
+    {
+        var user = User.CreatePending(
+            Guid.NewGuid(),
+            EmailAddress.Create("patient@clinichub.local").Value!,
+            "hash",
+            UserRole.Patient,
+            "confirmation-hash",
+            Now.AddMinutes(1),
+            Now).Value!;
+
+        var result = user.ConfirmEmail("confirmation-hash", Now.AddHours(1));
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains(result.Notifications, notification => notification.Code == "user.email_confirmation.expired");
+        Assert.False(user.IsActive);
+    }
+
+    [Fact]
+    public void ConfirmEmail_WhenTokenWasAlreadyConsumed_ReturnsInvalidNotification()
+    {
+        var user = User.CreatePending(
+            Guid.NewGuid(),
+            EmailAddress.Create("patient@clinichub.local").Value!,
+            "hash",
+            UserRole.Patient,
+            "confirmation-hash",
+            Now.AddHours(24),
+            Now).Value!;
+        user.ConfirmEmail("confirmation-hash", Now.AddMinutes(1));
+
+        var result = user.ConfirmEmail("confirmation-hash", Now.AddMinutes(2));
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains(result.Notifications, notification => notification.Code == "user.email_confirmation.invalid");
+    }
+
+    [Fact]
     public void Money_AndPayment_WhenInvalid_ReturnNotifications()
     {
         var invalidMoney = Money.Create(1.999m, "BRL");

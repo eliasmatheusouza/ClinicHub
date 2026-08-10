@@ -35,7 +35,7 @@ Isso não equivale, por si só, a DDD completo. O **DDD estratégico** precisa d
 2. **Proteção HTTP:** habilitar HTTPS e HSTS em produção e aplicar rate limiting, sobretudo em login, cadastro, confirmação e refresh.
 3. **Sessão do navegador:** avaliar refresh token em cookie `HttpOnly`, `Secure` e com política `SameSite`, reduzindo exposição a XSS. O token em `localStorage` é adequado para o laboratório, mas é uma decisão que exige cuidado em produção.
 4. **Auditoria:** registrar ator, data, antes/depois e Correlation ID para alterações de pacientes, consultas, pagamentos e papéis.
-5. **Testes:** restaurar e manter a meta de 70% em Domain e Application; adicionar testes aos fluxos de registro e confirmação de e-mail. A aferição posterior à entrega original encontrou aproximadamente 68,36% no Domain e 67,14% na Application, portanto o valor histórico do encerramento da etapa 10 não deve ser usado como estado atual.
+5. **Testes:** manter a meta de 70% em Domain e Application e torná-la obrigatória na CI. A etapa 14 adicionou testes aos fluxos de registro/confirmação e elevou a medição atual para 74,57% no Domain e 74,76% na Application; o próximo risco é permitir nova regressão sem um gate automático.
 6. **Dependências:** automatizar auditoria de pacotes .NET/NPM e corrigir vulnerabilidades encontradas, inclusive em dependências de desenvolvimento quando afetarem a cadeia de entrega.
 
 ### Prioridade 2 — confiabilidade assíncrona
