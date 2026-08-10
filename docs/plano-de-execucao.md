@@ -177,6 +177,7 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 - Swagger/OpenAPI recebeu exemplos de payload para login, cadastro, confirmação de e-mail, refresh, pacientes, agenda e pagamentos; validado em execução em `http://localhost:8082/swagger/v1/swagger.json`.
 - Verificações executadas: build e formatação .NET, 35 testes automatizados, análise/build/teste Angular e verificação dos artefatos documentais, todas concluídas com sucesso.
 - Adicionado o `docs/guia-de-estudo.md`, que explica o projeto a partir do código, com ordem de leitura, diagramas, fluxos, experiências práticas e exercícios de evolução.
+- Adicionado o `docs/avaliacao-de-maturidade.md`, distinguindo a base atual de MVP profissional das lacunas de segurança, resiliência, operação e DDD estratégico necessárias para produção.
 
 ## Regra de atualização
 

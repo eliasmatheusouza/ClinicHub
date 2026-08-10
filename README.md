@@ -116,7 +116,7 @@ npm run build
 npm test -- --watch=false
 ```
 
-A suíte atual contém 35 testes e a cobertura aferida para Domain/Application é superior a 70%.
+A suíte atual contém 35 testes. A aferição histórica do encerramento da etapa 10 superou 70%, mas uma auditoria posterior identificou regressão de cobertura nos fluxos novos; a restauração da meta está registrada nas próximas evoluções e na avaliação de maturidade.
 
 ## CI/CD
 
@@ -141,6 +141,7 @@ O escopo original foi concluído. A evolução recomendada para transformar o pr
 - [Operação local](docs/operacao-local.md)
 - [Guia da API](docs/api-examples.md)
 - [Guia de estudo passo a passo](docs/guia-de-estudo.md)
+- [Avaliação de maturidade arquitetural](docs/avaliacao-de-maturidade.md)
 - [Architecture Decision Records](docs/adr)
 
 ## Estrutura do repositório
