@@ -142,6 +142,7 @@ O escopo original foi concluído. A evolução recomendada para transformar o pr
 - [Guia da API](docs/api-examples.md)
 - [Guia de estudo passo a passo](docs/guia-de-estudo.md)
 - [Avaliação de maturidade arquitetural](docs/avaliacao-de-maturidade.md)
+- [Plano do ecossistema de portfólio](docs/plano-ecossistema-portfolio.md)
 - [Architecture Decision Records](docs/adr)
 
 ## Estrutura do repositório

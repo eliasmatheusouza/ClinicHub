@@ -200,3 +200,7 @@ As treze etapas originais estão concluídas. Os itens abaixo não alteram esse 
 | 4 | Gestão de equipe | Criar convites e administração de médicos e recepcionistas com roles e auditoria. |
 | 5 | Portal do paciente | Expor somente os dados do paciente autenticado e permitir consultar, cancelar e reagendar consultas próprias. |
 | 6 | Notificações e produto | Integrar e-mail/SMS/WhatsApp reais, indicadores operacionais, disponibilidade médica e dashboard com dados reais. |
+
+## Ecossistema de portfólio
+
+O ClinicHub é o projeto-base de um ecossistema que incluirá DocMind (IA aplicada a documentos), DevPulse (monitoramento em tempo real) e NetForge (biblioteca NuGet extraída de necessidades reais). A sequência, os critérios de encerramento e as regras de qualidade estão em [docs/plano-ecossistema-portfolio.md](plano-ecossistema-portfolio.md).
