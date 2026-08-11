@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -26,6 +27,18 @@ public sealed class HealthEndpointTests : IClassFixture<ClinicHubApiFactory>
         Assert.True(response.Headers.TryGetValues("X-Correlation-ID", out var values));
         Assert.Contains("integration-test-correlation", values);
     }
+
+    [Fact]
+    public async Task Login_WhenRequestLimitIsExceeded_ReturnsTooManyRequests()
+    {
+        var request = new { email = "invalid", password = "short" };
+
+        await _client.PostAsJsonAsync("/api/auth/login", request);
+        await _client.PostAsJsonAsync("/api/auth/login", request);
+        var response = await _client.PostAsJsonAsync("/api/auth/login", request);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
+    }
 }
 
 public sealed class ClinicHubApiFactory : WebApplicationFactory<Program>
@@ -40,7 +53,9 @@ public sealed class ClinicHubApiFactory : WebApplicationFactory<Program>
             ["RabbitMq:ConnectionString"] = "amqp://clinichub:clinichub-dev@localhost:5672",
             ["Jwt:Issuer"] = "ClinicHub",
             ["Jwt:Audience"] = "ClinicHub.Web",
-            ["Jwt:Key"] = "integration-test-key-with-at-least-32-characters"
+            ["Jwt:Key"] = "integration-test-key-with-at-least-32-characters",
+            ["RateLimiting:Login:PermitLimit"] = "2",
+            ["RateLimiting:Login:WindowSeconds"] = "60"
         }));
     }
 }

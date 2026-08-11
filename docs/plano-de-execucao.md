@@ -27,6 +27,7 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 19 | Defesa da API | ⬜ Pendente | Rate limiting de rotas sensíveis, headers de segurança e validação de configuração Production. |
 | 20 | Dados, auditoria e ownership | ⬜ Pendente | Audit trail, políticas de acesso por recurso, masking e plano de criptografia para dados sensíveis. |
 | 21 | Hardening de deploy | ⬜ Pendente | HTTPS, containers não-root, portas privadas, secrets externos e DAST em ambiente de teste. |
+| 22 | Capacidade e performance | ⬜ Pendente | Definir SLOs, criar testes de carga e declarar capacidade com métricas reproduzíveis. |
 
 ## Registro de confirmações
 
@@ -241,6 +242,18 @@ As etapas 19 a 21 aplicam os controles prioritários identificados na avaliaçã
 | 19 | Rate limiting em login/cadastro/confirmação/refresh; headers HTTP; HTTPS/HSTS em produção; validação de configuração | Rotas sensíveis recusam abuso, respostas possuem headers testados e a API não inicia em produção com configuração insegura. |
 | 20 | Audit trail, policy-based authorization e ownership por recurso; minimização/masking de dados | Alterações sensíveis são rastreáveis e testes impedem acesso a dados de outros usuários. |
 | 21 | Imagens não-root, portas internas privadas, secrets externos, deploy com TLS e DAST | Ambiente de demonstração possui checklist de hardening e scan dinâmico aprovado. |
+
+### Etapa 19 — Defesa da API
+
+**Iniciada em 11/08/2026.**
+
+- Primeiro controle implementado: rate limiting por IP em login, cadastro, confirmação de e-mail e refresh token, com políticas e janelas configuráveis em `RateLimiting`.
+- Login limita cinco tentativas por minuto, cadastro três tentativas por dez minutos, confirmação e refresh dez tentativas por minuto. O teste de integração reduz a política de login para duas tentativas e confirma retorno `429 Too Many Requests` na terceira.
+- A política por IP deverá considerar cabeçalhos de proxy confiáveis quando houver deploy atrás de reverse proxy; não se deve confiar cegamente em cabeçalhos enviados pelo cliente.
+
+## Capacidade e performance
+
+A capacidade simultânea não será declarada sem medição. A arquitetura atual, os critérios de pontuação e o plano de carga estão documentados em [docs/capacidade-e-performance.md](capacidade-e-performance.md).
 
 **Princípio de implementação:** o gate será progressivo. A cobertura total começa na meta histórica de 70% para Domain/Application; o objetivo de 80% será aplicado ao código novo quando a infraestrutura de medição por pull request estiver configurada. Isso evita testes artificiais apenas para elevar uma métrica global.
 

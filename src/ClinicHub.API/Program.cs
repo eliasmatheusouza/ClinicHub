@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Threading.RateLimiting;
 using ClinicHub.API.ExceptionHandling;
 using ClinicHub.API.HealthChecks;
 using ClinicHub.API.Middleware;
@@ -8,6 +9,7 @@ using ClinicHub.Infrastructure.DependencyInjection;
 using ClinicHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -36,6 +38,14 @@ try
         .WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? ["http://localhost:4200"])
         .AllowAnyHeader()
         .AllowAnyMethod()));
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        options.AddPolicy("auth-login", context => CreateAuthRateLimitPolicy(context, builder.Configuration, "Login", 5, 60));
+        options.AddPolicy("auth-register", context => CreateAuthRateLimitPolicy(context, builder.Configuration, "Register", 3, 600));
+        options.AddPolicy("auth-confirm-email", context => CreateAuthRateLimitPolicy(context, builder.Configuration, "ConfirmEmail", 10, 60));
+        options.AddPolicy("auth-refresh", context => CreateAuthRateLimitPolicy(context, builder.Configuration, "Refresh", 10, 60));
+    });
     builder.Services.AddControllers();
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -95,6 +105,7 @@ try
     app.UseSerilogRequestLogging();
     app.UseExceptionHandler();
     app.UseCors("frontend");
+    app.UseRateLimiter();
 
     if (app.Environment.IsDevelopment())
     {
@@ -129,6 +140,29 @@ catch (Exception exception)
 finally
 {
     await Log.CloseAndFlushAsync();
+}
+
+static RateLimitPartition<string> CreateAuthRateLimitPolicy(
+    HttpContext context,
+    IConfiguration configuration,
+    string policyName,
+    int defaultPermitLimit,
+    int defaultWindowSeconds)
+{
+    var section = configuration.GetSection($"RateLimiting:{policyName}");
+    var permitLimit = section.GetValue<int?>("PermitLimit") ?? defaultPermitLimit;
+    var windowSeconds = section.GetValue<int?>("WindowSeconds") ?? defaultWindowSeconds;
+    var partitionKey = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+    return RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey,
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = permitLimit,
+            Window = TimeSpan.FromSeconds(windowSeconds),
+            QueueLimit = 0,
+            AutoReplenishment = true
+        });
 }
 
 public partial class Program;

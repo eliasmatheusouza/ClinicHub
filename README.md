@@ -145,6 +145,7 @@ O escopo original foi concluído. A evolução recomendada para transformar o pr
 - [Plano do ecossistema de portfólio](docs/plano-ecossistema-portfolio.md)
 - [Trilha de qualidade e Platform Engineering](docs/plano-de-execucao.md#trilha-de-qualidade-e-platform-engineering)
 - [AWS para aprendizado gratuito e seguro](docs/aws-aprendizado-gratuito.md)
+- [Capacidade, performance e critérios de carga](docs/capacidade-e-performance.md)
 - [Architecture Decision Records](docs/adr)
 
 ## Estrutura do repositório

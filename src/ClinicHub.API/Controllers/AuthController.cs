@@ -6,6 +6,7 @@ using ClinicHub.Application.Authentication.Commands.RefreshAccessToken;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ClinicHub.API.Controllers;
 
@@ -15,6 +16,7 @@ namespace ClinicHub.API.Controllers;
 public sealed class AuthController(ISender sender) : ControllerBase
 {
     [HttpPost("login")]
+    [EnableRateLimiting("auth-login")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -25,6 +27,7 @@ public sealed class AuthController(ISender sender) : ControllerBase
     }
 
     [HttpPost("register")]
+    [EnableRateLimiting("auth-register")]
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register(RegisterAccountRequest request, CancellationToken cancellationToken)
@@ -41,6 +44,7 @@ public sealed class AuthController(ISender sender) : ControllerBase
     }
 
     [HttpPost("confirm-email")]
+    [EnableRateLimiting("auth-confirm-email")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ConfirmEmail(ConfirmEmailRequest request, CancellationToken cancellationToken)
@@ -52,6 +56,7 @@ public sealed class AuthController(ISender sender) : ControllerBase
     }
 
     [HttpPost("refresh")]
+    [EnableRateLimiting("auth-refresh")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
