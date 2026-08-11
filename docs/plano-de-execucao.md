@@ -29,6 +29,21 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 21 | Hardening de deploy | ✅ Concluída | Imagens não-root, manifesto de produção isolado, secrets externos e DAST remoto com artefato revisado e sem alertas de risco. |
 | 22 | Capacidade e performance | ⬜ Pendente | Definir SLOs, criar testes de carga e declarar capacidade com métricas reproduzíveis. |
 
+## Próximas etapas priorizadas
+
+Esta é a ordem de continuidade aprovada após a conclusão das etapas 16 e 21. Cada item só avança após sua evidência técnica ser registrada.
+
+| Prioridade | Trabalho | Resultado esperado |
+|---:|---|---|
+| 1 | **Etapa 17 — SonarQube/SonarCloud e Quality Gate** | Analisar código novo para bugs, vulnerabilidades, duplicação e cobertura; falhar a CI quando o padrão não for atendido. |
+| 2 | **Etapa 18 — Governança de Pull Requests** | Proteger `main`, exigir revisão e tornar CI, CodeQL, DAST e Quality Gate obrigatórios antes do merge. |
+| 3 | **Etapa 22 — Capacidade e performance** | Criar cenários k6, definir SLOs e medir p95/p99, erros, throughput, banco, cache e filas antes de declarar capacidade simultânea. |
+| 4 | **Resiliência de eventos** | Implementar outbox, retry limitado, DLQ e idempotência para que notificações não sejam perdidas silenciosamente. |
+| 5 | **Produção operada** | Publicar imagens em registry, aplicar IaC, configurar cloud, backups/restores, alertas, SMTP real e testes end-to-end autenticados. |
+| 6 | **Evolução funcional** | Completar portal do paciente, gestão de equipe, reenvio de confirmação e notificações reais. |
+
+O detalhamento didático, exercícios e critérios de conclusão de cada frente estão no [plano de ensino completo](plano-de-ensino-completo.md).
+
 ## Registro de confirmações
 
 ### Etapa 1 — Setup do projeto
