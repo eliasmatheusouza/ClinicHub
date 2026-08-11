@@ -26,7 +26,7 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 18 | Governança de pull requests | ⬜ Pendente | Proteger `main`, exigir checks aprovados e impedir merge fora do fluxo de revisão. |
 | 19 | Defesa da API | ✅ Concluída | Rate limiting nas rotas de autenticação, headers HTTP, HTTPS/HSTS em Production e validação de configuração segura. |
 | 20 | Dados, auditoria e ownership | ✅ Concluída | Audit trail, policies, ownership, minimização/masking e plano de criptografia documentado e validado. |
-| 21 | Hardening de deploy | 🟨 Em andamento | Imagens não-root, manifesto de produção isolado, secrets externos e workflow DAST implementados; falta primeira execução remota do DAST. |
+| 21 | Hardening de deploy | ✅ Concluída | Imagens não-root, manifesto de produção isolado, secrets externos e DAST remoto com artefato revisado e sem alertas de risco. |
 | 22 | Capacidade e performance | ⬜ Pendente | Definir SLOs, criar testes de carga e declarar capacidade com métricas reproduzíveis. |
 
 ## Registro de confirmações
@@ -269,14 +269,15 @@ As etapas 19 a 21 aplicam os controles prioritários identificados na avaliaçã
 
 ### Etapa 21 — Hardening de deploy
 
-**Iniciada em 11/08/2026.**
+**Confirmada em 11/08/2026.**
 
 - API, worker e frontend foram configurados para execução sem root. O frontend passa a escutar a porta 8080 interna, enquanto o Compose local mantém o acesso em `localhost:4200`.
 - Criado `docker-compose.production.yml`, separado do ambiente didático: API/worker sem portas publicadas, rede interna privada, frontend/API apenas expostos às redes de serviço e restrições de capabilities/filesystem em modo somente leitura.
 - O manifesto exige valores injetados pelo secret manager da plataforma; `.env.production.example` é propositalmente fictício e serve somente para validar a sintaxe. Não há segredo de produção versionado.
-- Criado workflow DAST manual e semanal com OWASP ZAP baseline, relatório HTML/JSON como artefato e stack Docker isolada. A confirmação final depende da primeira execução remota e da revisão do relatório.
+- Criado workflow DAST manual e semanal com OWASP ZAP baseline, relatório HTML/JSON como artefato e stack Docker isolada. O workflow prepara um diretório gravável exclusivo para o scanner e consulta `/health/ready`, evitando falso 404 no alvo inicial.
 - Validação local em 11/08/2026: as três imagens foram construídas com sucesso; `docker image inspect` e `id` dentro dos contêineres confirmaram UID 10001 (`clinichub`) para API, worker e frontend. API readiness e frontend responderam HTTP 200; o worker também permaneceu ativo após o RabbitMQ estabilizar. O contexto de build da API foi reduzido de aproximadamente 150 MB para 3,7 MB com exclusão de artefatos e documentos não relacionados no `.dockerignore`.
-- A primeira tentativa local de baixar a imagem do OWASP ZAP não concluiu após as camadas iniciais, apesar de espaço em disco disponível. O workflow remoto permanece a fonte de evidência para o scan e seu relatório.
+- A primeira tentativa local de baixar a imagem do OWASP ZAP não concluiu após as camadas iniciais, apesar de espaço em disco disponível; por isso o workflow remoto foi usado como fonte de evidência.
+- A execução remota final [DAST baseline #31451309129](https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31451309129) foi aprovada, publicou o artefato `dast-zap-report` e não encontrou alertas alto, médio ou baixo. Restaram apenas observações informativas de cache em respostas sem conteúdo sensível. Um alerta baixo anterior de `Cross-Origin-Resource-Policy` foi corrigido no middleware e protegido por teste de integração.
 
 ## Capacidade e performance
 

@@ -32,6 +32,8 @@ docker compose --env-file .env.production.example -f docker-compose.production.y
 
 ## DAST
 
-O workflow manual/semanal [DAST baseline](../.github/workflows/dast.yml) sobe a stack isolada e executa o OWASP ZAP contra a API pela rede Docker. O relatório HTML/JSON é publicado como artefato. A opção `-I` permite revisar alertas de severidade baixa no relatório, mas falhas de scan interrompem o job.
+O workflow manual/semanal [DAST baseline](../.github/workflows/dast.yml) sobe a stack isolada e executa o OWASP ZAP contra `/health/ready` pela rede Docker. Ele prepara um diretório gravável exclusivo e publica o relatório HTML/JSON como artefato `dast-zap-report`. A opção `-I` permite revisar alertas de severidade baixa no relatório, mas falhas de scan interrompem o job.
+
+A primeira linha de base remota foi aprovada em [DAST baseline #31451309129](https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31451309129), sem alertas alto, médio ou baixo. As observações informativas sobre cache em respostas sem dados sensíveis foram registradas e não representam aceitação de risco clínico.
 
 Antes de promover uma versão, revise alertas novos do ZAP, mantenha evidência da execução e corrija ou aceite formalmente cada risco. Para ambientes públicos, complemente o baseline com scan autenticado e uma política explícita de severidade que bloqueie releases.
