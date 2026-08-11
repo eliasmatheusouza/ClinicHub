@@ -157,7 +157,7 @@ No Angular, [auth.interceptor.ts](../frontend/clinichub-web/src/app/core/http/au
 
 `POST /api/auth/register` cria uma conta `Patient` inativa. Um token aleatório é enviado por e-mail e apenas seu hash fica no banco. `POST /api/auth/confirm-email` ativa a conta quando o token válido é apresentado.
 
-No modo local, o link de confirmação aparece nos logs da API. Em produção, configure SMTP no `.env`. Leia [User.cs](../src/ClinicHub.Domain/Authentication/User.cs) e [EmailConfirmationSender.cs](../src/ClinicHub.Infrastructure/Authentication/EmailConfirmationSender.cs).
+No modo local, `Email:DeliveryMode=Log` suprime o envio e registra apenas um evento sem e-mail ou token, evitando que credenciais de confirmação apareçam nos logs. Para percorrer a confirmação de ponta a ponta, configure um SMTP de teste (por exemplo, Mailpit) ou outro inbox controlado; em produção, configure SMTP pelo gerenciador de secrets. Leia [User.cs](../src/ClinicHub.Domain/Authentication/User.cs) e [EmailConfirmationSender.cs](../src/ClinicHub.Infrastructure/Authentication/EmailConfirmationSender.cs).
 
 ## 8. Frontend Angular
 

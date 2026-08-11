@@ -18,7 +18,7 @@ internal sealed class EmailConfirmationSender(
 
         if (string.Equals(deliveryMode, "Log", StringComparison.OrdinalIgnoreCase))
         {
-            logger.LogInformation("Email confirmation link generated for {RecipientEmail}: {ConfirmationUrl}", recipientEmail, confirmationUrl);
+            logger.LogInformation("Email confirmation was suppressed because log delivery mode is enabled.");
             return;
         }
 
@@ -46,6 +46,6 @@ internal sealed class EmailConfirmationSender(
         };
         cancellationToken.ThrowIfCancellationRequested();
         await client.SendMailAsync(message);
-        logger.LogInformation("Email confirmation sent to {RecipientEmail}", recipientEmail);
+        logger.LogInformation("Email confirmation sent.");
     }
 }
