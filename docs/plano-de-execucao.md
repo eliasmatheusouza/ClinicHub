@@ -21,7 +21,7 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 13 | Documentação final | ✅ Concluída | README, diagramas Mermaid, guia operacional/API, ADRs e exemplos Swagger implementados e validados. |
 | 14 | Testes de fluxos críticos | ✅ Concluída | Testes AAA para cadastro/confirmação de e-mail e regras do agregado `User`; cobertura restaurada para 74,57% no Domain e 74,76% na Application. |
 | 15 | Gate de cobertura | ✅ Concluída | Script de quality gate integrado à CI; falha abaixo de 70% nas camadas Domain e Application. |
-| 16 | Relatórios e auditorias de CI | 🟨 Em andamento | Publicar resultados TRX, auditar dependências .NET/NPM, habilitar CodeQL e Dependabot. |
+| 16 | Relatórios e auditorias de CI | ✅ Concluída | Resultados TRX publicados, auditorias .NET/NPM validadas, CodeQL aprovado e Dependabot sem alertas abertos. |
 | 17 | Análise estática e Quality Gate | ⬜ Pendente | Integrar SonarQube/SonarCloud e validar qualidade de código novo na pipeline. |
 | 18 | Governança de pull requests | ⬜ Pendente | Proteger `main`, exigir checks aprovados e impedir merge fora do fluxo de revisão. |
 | 19 | Defesa da API | ✅ Concluída | Rate limiting nas rotas de autenticação, headers HTTP, HTTPS/HSTS em Production e validação de configuração segura. |
@@ -224,14 +224,15 @@ As etapas 14 a 18 aplicam ao ClinicHub os conceitos de AAA, FIRST, isolamento po
 
 ### Etapa 16 — Relatórios e auditorias de CI
 
-**Iniciada em 10/08/2026.**
+**Confirmada em 11/08/2026.**
 
-- A suíte .NET passou a gerar arquivos TRX; a ação `dorny/test-reporter` publicará o resumo dos testes no check da execução.
+- A suíte .NET gera arquivos TRX; a ação `dorny/test-reporter` publica o resumo dos testes no check da execução.
 - Criado job de auditoria que falha para dependências .NET vulneráveis e vulnerabilidades altas de dependências NPM de execução. O relatório NPM completo, incluindo dependências de desenvolvimento, fica disponível como artefato para revisão.
 - Atualizados `Microsoft.NET.Test.Sdk`, xUnit, runner xUnit e Coverlet nos quatro projetos de teste. A auditoria posterior não encontrou vulnerabilidades transitivas no .NET, incluindo os projetos de teste.
 - Adicionado workflow CodeQL para C# e JavaScript/TypeScript em push, PR, execução manual e agenda semanal.
-- Adicionado Dependabot semanal para NuGet, NPM e GitHub Actions.
-- A confirmação final depende da primeira execução remota das novas pipelines.
+- Adicionado Dependabot semanal para NuGet, NPM e GitHub Actions. Os alertas e as atualizações automáticas de segurança também foram habilitados no repositório.
+- A execução remota final [CI #31452721365](https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31452721365) aprovou backend, frontend, auditoria e imagens Docker; [CodeQL #31452721355](https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31452721355) também foi aprovado.
+- A revisão encontrou uma exposição real de e-mail/token de confirmação nos logs do modo didático. Ela foi removida, e a reanálise CodeQL ficou sem alertas abertos. Seis dependências transitivas de desenvolvimento alertadas pelo Dependabot foram atualizadas via `overrides` mínimos no NPM; a reindexação final ficou sem alertas Dependabot abertos.
 
 ## Trilha de segurança da aplicação
 
