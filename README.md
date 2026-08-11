@@ -142,6 +142,7 @@ O escopo original foi concluído. A evolução recomendada para transformar o pr
 - [Operação local](docs/operacao-local.md)
 - [Guia da API](docs/api-examples.md)
 - [Guia de estudo passo a passo](docs/guia-de-estudo.md)
+- [Plano de ensino completo por módulos](docs/plano-de-ensino-completo.md)
 - [Avaliação de maturidade arquitetural](docs/avaliacao-de-maturidade.md)
 - [Plano do ecossistema de portfólio](docs/plano-ecossistema-portfolio.md)
 - [Trilha de qualidade e Platform Engineering](docs/plano-de-execucao.md#trilha-de-qualidade-e-platform-engineering)
