@@ -5,6 +5,7 @@ using ClinicHub.API.HealthChecks;
 using ClinicHub.API.Middleware;
 using ClinicHub.API.Security;
 using ClinicHub.API.Swagger;
+using ClinicHub.API.Authorization;
 using ClinicHub.Application.DependencyInjection;
 using ClinicHub.Infrastructure.DependencyInjection;
 using ClinicHub.Infrastructure.Persistence;
@@ -53,6 +54,16 @@ try
         options.AddPolicy("auth-refresh", context => CreateAuthRateLimitPolicy(context, builder.Configuration, "Refresh", 10, 60));
     });
     builder.Services.AddControllers();
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy(AuthorizationPolicies.PatientsRead, policy => policy.RequireRole("Admin", "Doctor", "Receptionist"));
+        options.AddPolicy(AuthorizationPolicies.PatientsWrite, policy => policy.RequireRole("Admin", "Receptionist"));
+        options.AddPolicy(AuthorizationPolicies.PatientsDeactivate, policy => policy.RequireRole("Admin"));
+        options.AddPolicy(AuthorizationPolicies.AppointmentsManage, policy => policy.RequireRole("Admin", "Receptionist"));
+        options.AddPolicy(AuthorizationPolicies.FinancialRead, policy => policy.RequireRole("Admin"));
+        options.AddPolicy(AuthorizationPolicies.PaymentsManage, policy => policy.RequireRole("Admin", "Receptionist"));
+        options.AddPolicy(AuthorizationPolicies.DoctorsRead, policy => policy.RequireRole("Admin", "Receptionist"));
+    });
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddEndpointsApiExplorer();
@@ -127,6 +138,7 @@ try
     }
 
     app.UseAuthentication();
+    app.UseMiddleware<AuditTrailMiddleware>();
     app.UseAuthorization();
     app.MapControllers();
     app.MapHealthChecks("/health/live", new HealthCheckOptions

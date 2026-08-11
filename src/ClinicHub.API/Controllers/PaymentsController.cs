@@ -1,4 +1,5 @@
 using ClinicHub.API.Contracts.Payments;
+using ClinicHub.API.Authorization;
 using ClinicHub.Application.Payments.Commands.RegisterPayment;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,Receptionist")]
+[Authorize(Policy = AuthorizationPolicies.PaymentsManage)]
 [Route("api/payments")]
 public sealed class PaymentsController(ISender sender) : ControllerBase
 {

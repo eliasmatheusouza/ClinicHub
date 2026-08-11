@@ -1,4 +1,5 @@
 using ClinicHub.Application.Users.Queries.GetDoctors;
+using ClinicHub.API.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,Receptionist")]
+[Authorize(Policy = AuthorizationPolicies.DoctorsRead)]
 [Route("api/users")]
 public sealed class UsersController(ISender sender) : ControllerBase
 {

@@ -1,4 +1,5 @@
 using ClinicHub.API.Contracts.Appointments;
+using ClinicHub.API.Authorization;
 using ClinicHub.Application.Appointments.Commands.CancelAppointment;
 using ClinicHub.Application.Appointments.Commands.ConfirmAppointment;
 using ClinicHub.Application.Appointments.Commands.RescheduleAppointment;
@@ -10,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,Receptionist")]
+[Authorize(Policy = AuthorizationPolicies.AppointmentsManage)]
 [Route("api/appointments")]
 public sealed class AppointmentsController(ISender sender) : ControllerBase
 {

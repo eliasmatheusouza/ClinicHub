@@ -1,4 +1,5 @@
 using ClinicHub.API.Contracts.Patients;
+using ClinicHub.API.Authorization;
 using ClinicHub.Application.Patients.Commands.CreatePatient;
 using ClinicHub.Application.Patients.Commands.DeactivatePatient;
 using ClinicHub.Application.Patients.Commands.UpdatePatient;
@@ -11,12 +12,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,Doctor,Receptionist")]
+[Authorize(Policy = AuthorizationPolicies.PatientsRead)]
 [Route("api/patients")]
 public sealed class PatientsController(ISender sender) : ControllerBase
 {
     [HttpPost]
-    [Authorize(Roles = "Admin,Receptionist")]
+    [Authorize(Policy = AuthorizationPolicies.PatientsWrite)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create(CreatePatientRequest request, CancellationToken cancellationToken)
@@ -56,7 +57,7 @@ public sealed class PatientsController(ISender sender) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin,Receptionist")]
+    [Authorize(Policy = AuthorizationPolicies.PatientsWrite)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -74,7 +75,7 @@ public sealed class PatientsController(ISender sender) : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthorizationPolicies.PatientsDeactivate)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

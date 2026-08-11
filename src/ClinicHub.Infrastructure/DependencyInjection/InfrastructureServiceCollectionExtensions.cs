@@ -1,4 +1,5 @@
 using ClinicHub.Application.Abstractions;
+using ClinicHub.Application.Auditing;
 using ClinicHub.Application.Authentication.Abstractions;
 using ClinicHub.Application.Caching;
 using ClinicHub.Application.Events;
@@ -6,6 +7,7 @@ using ClinicHub.Application.Financial.Abstractions;
 using ClinicHub.Application.IntegrationEvents;
 using ClinicHub.Domain.Interfaces;
 using ClinicHub.Infrastructure.Authentication;
+using ClinicHub.Infrastructure.Auditing;
 using ClinicHub.Infrastructure.Caching;
 using ClinicHub.Infrastructure.Messaging;
 using ClinicHub.Infrastructure.Financial;
@@ -32,6 +34,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IAuditTrailWriter, EfAuditTrailWriter>();
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<IPasswordHashingService, PasswordHashingService>();
         services.AddSingleton<ITokenIssuer, JwtTokenIssuer>();

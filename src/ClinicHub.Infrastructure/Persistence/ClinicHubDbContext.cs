@@ -2,6 +2,7 @@ using ClinicHub.Domain.Appointments;
 using ClinicHub.Domain.Authentication;
 using ClinicHub.Domain.Patients;
 using ClinicHub.Domain.Payments;
+using ClinicHub.Infrastructure.Persistence.Auditing;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Infrastructure.Persistence;
@@ -13,6 +14,7 @@ public sealed class ClinicHubDbContext(DbContextOptions<ClinicHubDbContext> opti
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

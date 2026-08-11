@@ -25,7 +25,7 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 17 | Análise estática e Quality Gate | ⬜ Pendente | Integrar SonarQube/SonarCloud e validar qualidade de código novo na pipeline. |
 | 18 | Governança de pull requests | ⬜ Pendente | Proteger `main`, exigir checks aprovados e impedir merge fora do fluxo de revisão. |
 | 19 | Defesa da API | ✅ Concluída | Rate limiting nas rotas de autenticação, headers HTTP, HTTPS/HSTS em Production e validação de configuração segura. |
-| 20 | Dados, auditoria e ownership | ⬜ Pendente | Audit trail, políticas de acesso por recurso, masking e plano de criptografia para dados sensíveis. |
+| 20 | Dados, auditoria e ownership | 🟨 Em andamento | Audit trail e políticas de acesso nomeadas iniciados; ownership, masking e plano de criptografia seguem pendentes. |
 | 21 | Hardening de deploy | ⬜ Pendente | HTTPS, containers não-root, portas privadas, secrets externos e DAST em ambiente de teste. |
 | 22 | Capacidade e performance | ⬜ Pendente | Definir SLOs, criar testes de carga e declarar capacidade com métricas reproduzíveis. |
 
@@ -253,6 +253,15 @@ As etapas 19 a 21 aplicam os controles prioritários identificados na avaliaçã
 - Adicionados headers `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` e CSP para rotas da API. Swagger é excluído da CSP restritiva em desenvolvimento.
 - Em Production, HTTPS redirection e HSTS são habilitados. A inicialização é bloqueada se JWT, hosts, CORS, URL de confirmação ou modo de e-mail usarem valores inseguros; `appsettings.Production.json` não contém secrets e exige configuração externa.
 - Validações executadas: formatação, build Release e quatro testes de integração aprovados, cobrindo liveness, headers, rate limiting e cenários aceitos/rejeitados da configuração Production.
+
+### Etapa 20 — Dados, auditoria e ownership
+
+**Iniciada em 11/08/2026.**
+
+- Criada a tabela `AuditLogs`, com migration e índices por data, ator/data e CorrelationId. Mutações de recursos da API registram ator, papel, método, caminho da rota, status, correlação e momento UTC.
+- O audit trail não persiste corpo, query string, tokens nem dados clínicos; rotas de autenticação são deliberadamente excluídas. A falha de auditoria é registrada e não altera a resposta de negócio no MVP.
+- Controllers administrativos agora usam policies nomeadas, centralizando a relação entre permissões e roles no composition root.
+- O ownership individual do paciente não foi simulado: o domínio ainda não associa `User` a `Patient`. O plano, o limite de segurança e os testes necessários para liberar um portal do paciente estão documentados em `docs/auditoria-e-autorizacao.md`.
 
 ## Capacidade e performance
 
