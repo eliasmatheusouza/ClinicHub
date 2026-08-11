@@ -3,3 +3,9 @@
 .git/
 .env
 frontend/node_modules/
+frontend/clinichub-web/node_modules/
+frontend/clinichub-web/dist/
+frontend/clinichub-web/.angular/
+**/TestResults/
+*.docx
+qa_ingles/

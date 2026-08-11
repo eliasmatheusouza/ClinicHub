@@ -275,6 +275,8 @@ As etapas 19 a 21 aplicam os controles prioritários identificados na avaliaçã
 - Criado `docker-compose.production.yml`, separado do ambiente didático: API/worker sem portas publicadas, rede interna privada, frontend/API apenas expostos às redes de serviço e restrições de capabilities/filesystem em modo somente leitura.
 - O manifesto exige valores injetados pelo secret manager da plataforma; `.env.production.example` é propositalmente fictício e serve somente para validar a sintaxe. Não há segredo de produção versionado.
 - Criado workflow DAST manual e semanal com OWASP ZAP baseline, relatório HTML/JSON como artefato e stack Docker isolada. A confirmação final depende da primeira execução remota e da revisão do relatório.
+- Validação local em 11/08/2026: as três imagens foram construídas com sucesso; `docker image inspect` e `id` dentro dos contêineres confirmaram UID 10001 (`clinichub`) para API, worker e frontend. API readiness e frontend responderam HTTP 200; o worker também permaneceu ativo após o RabbitMQ estabilizar. O contexto de build da API foi reduzido de aproximadamente 150 MB para 3,7 MB com exclusão de artefatos e documentos não relacionados no `.dockerignore`.
+- A primeira tentativa local de baixar a imagem do OWASP ZAP não concluiu após as camadas iniciais, apesar de espaço em disco disponível. O workflow remoto permanece a fonte de evidência para o scan e seu relatório.
 
 ## Capacidade e performance
 
