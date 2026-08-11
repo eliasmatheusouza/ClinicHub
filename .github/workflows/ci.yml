@@ -39,7 +39,7 @@ jobs:
           ./scripts/Verify-Coverage.ps1 -MinimumLineRate 70
 
       - name: Publish test results
-        uses: dorny/test-reporter@v2.2.0
+        uses: dorny/test-reporter@v3.0.0
         if: always()
         with:
           name: Backend test results
