@@ -11,6 +11,7 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next)
             headers.TryAdd("X-Frame-Options", "DENY");
             headers.TryAdd("Referrer-Policy", "no-referrer");
             headers.TryAdd("Permissions-Policy", "camera=(), geolocation=(), microphone=()");
+            headers.TryAdd("Cross-Origin-Resource-Policy", "same-origin");
 
             if (!context.Request.Path.StartsWithSegments("/swagger"))
             {
