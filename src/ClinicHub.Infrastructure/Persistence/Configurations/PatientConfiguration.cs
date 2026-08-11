@@ -13,6 +13,8 @@ internal sealed class PatientConfiguration : IEntityTypeConfiguration<Patient>
         builder.Property(patient => patient.Id).ValueGeneratedNever();
         builder.Property(patient => patient.BirthDate).HasColumnType("date").IsRequired();
         builder.Property(patient => patient.IsActive).IsRequired();
+        builder.Property(patient => patient.UserId);
+        builder.HasIndex(patient => patient.UserId).IsUnique().HasFilter("[UserId] IS NOT NULL");
         builder.Ignore(patient => patient.DomainEvents);
 
         builder.OwnsOne(patient => patient.Name, name =>

@@ -9,4 +9,5 @@ public static class AuthorizationPolicies
     public const string FinancialRead = "financial.read";
     public const string PaymentsManage = "payments.manage";
     public const string DoctorsRead = "doctors.read";
+    public const string PatientPortalAccess = "patient-portal.access";
 }

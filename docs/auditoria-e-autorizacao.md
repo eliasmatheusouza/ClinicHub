@@ -36,16 +36,20 @@ As permissões de API deixam de depender de strings de roles espalhadas pelos co
 
 Uma policy nomeada permite trocar a regra em um único lugar, evoluir para requirements próprios e tornar as permissões verificáveis em testes.
 
-## Limite atual: ownership do paciente
+## Ownership do paciente
 
-Uma conta com role `Patient` ainda não possui vínculo persistido com a entidade `Patient`. Logo, não há endpoint de portal do paciente e não se deve adicionar um `[Authorize(Roles = "Patient")]` a rotas existentes: isso concederia acesso amplo a prontuários de terceiros.
+`Patient.UserId` é um vínculo opcional e único para `User`. Ele permite manter prontuários administrativos sem conta, mas impede que uma conta `Patient` tenha mais de um perfil ou consulte o perfil de outra pessoa.
 
-Para implementar ownership corretamente, a próxima fatia deve:
+O portal usa a policy `patient-portal.access` e expõe somente rotas `/me`:
 
-1. modelar uma associação explícita e única entre `User` e `Patient`;
-2. criar um requirement `PatientOwnerRequirement` que compare o usuário autenticado com o recurso solicitado;
-3. filtrar consultas na Application/Infrastructure pelo identificador vinculado, e não apenas no controller;
-4. expor DTOs mínimos próprios para o portal, com masking quando aplicável;
-5. cobrir sucesso, tentativa de acesso cruzado e ausência de vínculo com testes de integração.
+| Rota | Comportamento |
+|---|---|
+| `GET /api/patient-portal/me` | Busca o perfil apenas pelo identificador presente no token. |
+| `POST /api/patient-portal/me` | Cria o primeiro perfil e o vincula à conta autenticada. |
+| `PUT /api/patient-portal/me` | Atualiza nome, nascimento e telefone do perfil vinculado. |
 
-Até lá, dados de pacientes permanecem acessíveis somente às políticas administrativas acima.
+Nenhuma dessas rotas recebe um `patientId` do cliente. A consulta é filtrada na Application/Infrastructure pelo `UserId` autenticado, e os testes cobrem a tentativa de uma conta diferente obter um perfil que não lhe pertence. O e-mail do perfil vem da conta confirmada e não pode ser substituído pelo portal.
+
+Quando já existir um prontuário administrativo com o mesmo e-mail, o portal recusa a autocriação. A associação desse caso deve ser feita em fluxo administrativo verificado (convite/validação pela clínica), nunca simplesmente por um e-mail informado no cliente.
+
+Ainda pendentes nesta etapa: DTOs específicos para mascarar campos em novos casos de uso, política de retenção/criptografia para dados sensíveis e uma interface Angular para o portal.

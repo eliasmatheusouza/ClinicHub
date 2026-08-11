@@ -6,6 +6,7 @@ namespace ClinicHub.Domain.Interfaces;
 public interface IPatientRepository
 {
     Task<Patient?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Patient?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<bool> ExistsByEmailAsync(EmailAddress email, Guid? ignoredPatientId = null, CancellationToken cancellationToken = default);
     Task<PatientSearchResult> SearchAsync(PatientSearchFilter filter, CancellationToken cancellationToken = default);
     Task AddAsync(Patient patient, CancellationToken cancellationToken = default);

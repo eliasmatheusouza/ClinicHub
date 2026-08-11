@@ -45,6 +45,24 @@ Para renovar a sessão, envie o `refreshToken` para `POST /api/auth/refresh`. A 
 
 ## Pacientes
 
+### Portal do paciente
+
+Somente uma conta com role `Patient` confirmada pode usar estas rotas. O token determina o perfil; não envie nem escolha um identificador de paciente.
+
+```http
+POST /api/patient-portal/me
+Authorization: Bearer {token-do-paciente}
+Content-Type: application/json
+
+{
+  "name": "Ana Souza",
+  "birthDate": "1990-01-01",
+  "phone": "11999999999"
+}
+```
+
+Para consultar ou atualizar o próprio perfil, use `GET /api/patient-portal/me` ou `PUT /api/patient-portal/me` com o mesmo payload. O e-mail é sempre o da conta confirmada.
+
 ```http
 POST /api/patients
 Authorization: Bearer {accessToken}

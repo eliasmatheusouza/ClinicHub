@@ -12,12 +12,13 @@ public sealed class Patient : AggregateRoot
         Phone = null!;
     }
 
-    private Patient(Guid id, PersonName name, DateOnly birthDate, EmailAddress email, PhoneNumber phone) : base(id)
+    private Patient(Guid id, PersonName name, DateOnly birthDate, EmailAddress email, PhoneNumber phone, Guid? userId) : base(id)
     {
         Name = name;
         BirthDate = birthDate;
         Email = email;
         Phone = phone;
+        UserId = userId;
         IsActive = true;
     }
 
@@ -26,8 +27,16 @@ public sealed class Patient : AggregateRoot
     public EmailAddress Email { get; private set; }
     public PhoneNumber Phone { get; private set; }
     public bool IsActive { get; private set; }
+    public Guid? UserId { get; private set; }
 
-    public static DomainResult<Patient> Create(Guid id, PersonName name, DateOnly birthDate, EmailAddress email, PhoneNumber phone, DateOnly today)
+    public static DomainResult<Patient> Create(
+        Guid id,
+        PersonName name,
+        DateOnly birthDate,
+        EmailAddress email,
+        PhoneNumber phone,
+        DateOnly today,
+        Guid? userId = null)
     {
         if (id == Guid.Empty)
         {
@@ -39,7 +48,12 @@ public sealed class Patient : AggregateRoot
             return DomainResult<Patient>.Failure(new("patient.birth_date.invalid", "A data de nascimento deve ser anterior à data atual."));
         }
 
-        return DomainResult<Patient>.Success(new Patient(id, name, birthDate, email, phone));
+        if (userId == Guid.Empty)
+        {
+            return DomainResult<Patient>.Failure(new("patient.user_id.invalid", "O identificador da conta do paciente é inválido."));
+        }
+
+        return DomainResult<Patient>.Success(new Patient(id, name, birthDate, email, phone, userId));
     }
 
     public DomainResult UpdateContact(EmailAddress email, PhoneNumber phone)

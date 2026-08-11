@@ -10,6 +10,9 @@ internal sealed class PatientRepository(ClinicHubDbContext context) : IPatientRe
     public Task<Patient?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         context.Patients.SingleOrDefaultAsync(patient => patient.Id == id, cancellationToken);
 
+    public Task<Patient?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default) =>
+        context.Patients.SingleOrDefaultAsync(patient => patient.UserId == userId, cancellationToken);
+
     public Task<bool> ExistsByEmailAsync(EmailAddress email, Guid? ignoredPatientId = null, CancellationToken cancellationToken = default) =>
         context.Patients.AnyAsync(patient => patient.Email.Value == email.Value && (!ignoredPatientId.HasValue || patient.Id != ignoredPatientId.Value), cancellationToken);
 

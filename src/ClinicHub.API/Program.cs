@@ -63,6 +63,7 @@ try
         options.AddPolicy(AuthorizationPolicies.FinancialRead, policy => policy.RequireRole("Admin"));
         options.AddPolicy(AuthorizationPolicies.PaymentsManage, policy => policy.RequireRole("Admin", "Receptionist"));
         options.AddPolicy(AuthorizationPolicies.DoctorsRead, policy => policy.RequireRole("Admin", "Receptionist"));
+        options.AddPolicy(AuthorizationPolicies.PatientPortalAccess, policy => policy.RequireRole("Patient"));
     });
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

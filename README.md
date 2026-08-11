@@ -63,6 +63,7 @@ As credenciais são exclusivamente locais e podem ser alteradas no `.env`. Infor
 
 - **Autenticação:** JWT de curta duração, refresh token rotativo e autorização por role.
 - **Cadastro público:** rota `/register`, confirmação por e-mail e ativação de conta `Patient` por token de uso único.
+- **Portal do paciente (API):** criação e manutenção do próprio perfil com vínculo único por conta e rotas seguras `/me`.
 - **Pacientes:** CRUD, filtros, paginação e cache Redis versionado.
 - **Agenda:** criar, confirmar, reagendar e cancelar; conflitos de horários são regras de domínio.
 - **Notificações:** confirmação de consulta publica evento no RabbitMQ; worker consome a fila durável.
