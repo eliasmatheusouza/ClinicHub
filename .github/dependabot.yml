@@ -1,0 +1,49 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: "/src/ClinicHub.Infrastructure"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: nuget
+    directory: "/src/ClinicHub.API"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: nuget
+    directory: "/tests/ClinicHub.Domain.Tests"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: nuget
+    directory: "/tests/ClinicHub.Application.Tests"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: nuget
+    directory: "/tests/ClinicHub.Infrastructure.Tests"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: nuget
+    directory: "/tests/ClinicHub.API.IntegrationTests"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: npm
+    directory: "/frontend/clinichub-web"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3

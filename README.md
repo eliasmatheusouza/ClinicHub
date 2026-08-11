@@ -120,7 +120,7 @@ A suíte atual contém 42 testes. Após os testes de cadastro e confirmação de
 
 ## CI/CD
 
-O workflow [CI](.github/workflows/ci.yml) é executado em todo push, pull request e disparo manual. Ele valida formatação, build Release, testes e cobertura .NET; análise TypeScript, build e testes Angular; além da especificação e imagens Docker. A primeira execução remota foi aprovada: [ver execução](https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31289372213).
+O workflow [CI](.github/workflows/ci.yml) é executado em todo push, pull request e disparo manual. Ele valida formatação, build Release, testes, cobertura e relatórios TRX .NET; análise TypeScript, build e testes Angular; auditoria de dependências e imagens Docker. O workflow [CodeQL](.github/workflows/codeql.yml) analisa C# e JavaScript/TypeScript; o Dependabot acompanha NuGet, NPM e Actions semanalmente. A primeira execução remota foi aprovada: [ver execução](https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31289372213).
 
 ## Próximas evoluções
 

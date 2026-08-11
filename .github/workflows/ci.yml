@@ -7,6 +7,8 @@ on:
 
 permissions:
   contents: read
+  checks: write
+  pull-requests: write
 
 jobs:
   backend:
@@ -33,8 +35,17 @@ jobs:
       - name: Test with coverage and quality gate
         shell: pwsh
         run: |
-          dotnet test ClinicHub.sln --configuration Release --no-restore --collect "XPlat Code Coverage"
+          dotnet test ClinicHub.sln --configuration Release --no-restore --collect "XPlat Code Coverage" --logger "trx"
           ./scripts/Verify-Coverage.ps1 -MinimumLineRate 70
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v2.2.0
+        if: always()
+        with:
+          name: Backend test results
+          path: "**/TestResults/*.trx"
+          reporter: dotnet-trx
+          fail-on-error: "false"
 
       - name: Publish coverage artifact
         uses: actions/upload-artifact@v4
@@ -42,6 +53,53 @@ jobs:
         with:
           name: backend-coverage
           path: "**/TestResults/**/coverage.cobertura.xml"
+          if-no-files-found: warn
+
+  security:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore .NET dependencies
+        run: dotnet restore ClinicHub.sln
+
+      - name: Audit .NET dependencies
+        run: dotnet list ClinicHub.sln package --vulnerable --include-transitive
+
+      - name: Configure Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.20.0
+          cache: npm
+          cache-dependency-path: frontend/clinichub-web/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend/clinichub-web
+        run: npm ci
+
+      - name: Audit frontend runtime dependencies
+        working-directory: frontend/clinichub-web
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Generate complete frontend audit report
+        if: always()
+        shell: bash
+        working-directory: frontend/clinichub-web
+        run: npm audit --json > npm-audit.json || true
+
+      - name: Publish frontend audit artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-audit
+          path: frontend/clinichub-web/npm-audit.json
           if-no-files-found: warn
 
   frontend:
@@ -76,7 +134,7 @@ jobs:
   docker:
     name: Docker images
     runs-on: ubuntu-latest
-    needs: [backend, frontend]
+    needs: [backend, frontend, security]
     steps:
       - name: Checkout
         uses: actions/checkout@v4

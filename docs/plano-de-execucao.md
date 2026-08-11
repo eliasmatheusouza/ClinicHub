@@ -21,9 +21,12 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 13 | Documentação final | ✅ Concluída | README, diagramas Mermaid, guia operacional/API, ADRs e exemplos Swagger implementados e validados. |
 | 14 | Testes de fluxos críticos | ✅ Concluída | Testes AAA para cadastro/confirmação de e-mail e regras do agregado `User`; cobertura restaurada para 74,57% no Domain e 74,76% na Application. |
 | 15 | Gate de cobertura | ✅ Concluída | Script de quality gate integrado à CI; falha abaixo de 70% nas camadas Domain e Application. |
-| 16 | Relatórios e auditorias de CI | ⬜ Pendente | Publicar resultados de testes e executar auditorias de dependências e análise de segurança. |
+| 16 | Relatórios e auditorias de CI | 🟨 Em andamento | Publicar resultados TRX, auditar dependências .NET/NPM, habilitar CodeQL e Dependabot. |
 | 17 | Análise estática e Quality Gate | ⬜ Pendente | Integrar SonarQube/SonarCloud e validar qualidade de código novo na pipeline. |
 | 18 | Governança de pull requests | ⬜ Pendente | Proteger `main`, exigir checks aprovados e impedir merge fora do fluxo de revisão. |
+| 19 | Defesa da API | ⬜ Pendente | Rate limiting de rotas sensíveis, headers de segurança e validação de configuração Production. |
+| 20 | Dados, auditoria e ownership | ⬜ Pendente | Audit trail, políticas de acesso por recurso, masking e plano de criptografia para dados sensíveis. |
+| 21 | Hardening de deploy | ⬜ Pendente | HTTPS, containers não-root, portas privadas, secrets externos e DAST em ambiente de teste. |
 
 ## Registro de confirmações
 
@@ -217,6 +220,27 @@ As etapas 14 a 18 aplicam ao ClinicHub os conceitos de AAA, FIRST, isolamento po
 | 16 | Dar feedback rápido sobre qualidade e riscos de dependência | Resultados de teste aparecem no PR; `dotnet`/NPM audit e análise de segurança executam na CI. |
 | 17 | Analisar código novo com Quality Gate | Sonar configurado; novos bugs, vulnerabilidades, duplicação e cobertura insuficiente bloqueiam o job. |
 | 18 | Tornar os checks obrigatórios antes do merge | `main` protegida, revisão e checks de backend/frontend/Docker/segurança obrigatórios. |
+
+### Etapa 16 — Relatórios e auditorias de CI
+
+**Iniciada em 10/08/2026.**
+
+- A suíte .NET passou a gerar arquivos TRX; a ação `dorny/test-reporter` publicará o resumo dos testes no check da execução.
+- Criado job de auditoria que falha para dependências .NET vulneráveis e vulnerabilidades altas de dependências NPM de execução. O relatório NPM completo, incluindo dependências de desenvolvimento, fica disponível como artefato para revisão.
+- Atualizados `Microsoft.NET.Test.Sdk`, xUnit, runner xUnit e Coverlet nos quatro projetos de teste. A auditoria posterior não encontrou vulnerabilidades transitivas no .NET, incluindo os projetos de teste.
+- Adicionado workflow CodeQL para C# e JavaScript/TypeScript em push, PR, execução manual e agenda semanal.
+- Adicionado Dependabot semanal para NuGet, NPM e GitHub Actions.
+- A confirmação final depende da primeira execução remota das novas pipelines.
+
+## Trilha de segurança da aplicação
+
+As etapas 19 a 21 aplicam os controles prioritários identificados na avaliação de segurança. Elas seguem a qualidade de CI porque novos controles precisam nascer com testes e análise automatizada.
+
+| Etapa | Controles | Critério de conclusão |
+|---:|---|---|
+| 19 | Rate limiting em login/cadastro/confirmação/refresh; headers HTTP; HTTPS/HSTS em produção; validação de configuração | Rotas sensíveis recusam abuso, respostas possuem headers testados e a API não inicia em produção com configuração insegura. |
+| 20 | Audit trail, policy-based authorization e ownership por recurso; minimização/masking de dados | Alterações sensíveis são rastreáveis e testes impedem acesso a dados de outros usuários. |
+| 21 | Imagens não-root, portas internas privadas, secrets externos, deploy com TLS e DAST | Ambiente de demonstração possui checklist de hardening e scan dinâmico aprovado. |
 
 **Princípio de implementação:** o gate será progressivo. A cobertura total começa na meta histórica de 70% para Domain/Application; o objetivo de 80% será aplicado ao código novo quando a infraestrutura de medição por pull request estiver configurada. Isso evita testes artificiais apenas para elevar uma métrica global.
 
