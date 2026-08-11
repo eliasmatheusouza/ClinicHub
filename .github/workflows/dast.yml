@@ -32,14 +32,20 @@ jobs:
           docker compose logs api
           exit 1
 
+      - name: Prepare ZAP report directory
+        shell: bash
+        run: |
+          mkdir -p zap-reports
+          chmod 777 zap-reports
+
       - name: Scan API with OWASP ZAP
         shell: bash
         run: |
           docker run --rm \
             --network clinichub_clinichub \
-            --volume "${PWD}:/zap/wrk:rw" \
+            --volume "${PWD}/zap-reports:/zap/wrk:rw" \
             ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py -t http://api:8080 -m 2 -I -r zap-report.html -J zap-report.json
+            zap-baseline.py -t http://api:8080/health/ready -m 2 -I -r zap-report.html -J zap-report.json
 
       - name: Publish ZAP reports
         if: always()
@@ -47,8 +53,8 @@ jobs:
         with:
           name: dast-zap-report
           path: |
-            zap-report.html
-            zap-report.json
+            zap-reports/zap-report.html
+            zap-reports/zap-report.json
           if-no-files-found: warn
 
       - name: Stop isolated test stack
