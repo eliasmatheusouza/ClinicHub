@@ -90,6 +90,54 @@ A camada Infrastructure implementa contratos definidos pelo Domain/Application:
 
 O ganho é poder trocar Redis, SMTP ou banco com impacto limitado: os casos de uso conhecem interfaces, não implementações concretas.
 
+### Repositories, services e Unit of Work
+
+No ClinicHub, a regra é simples: **repository acessa dados; handler/service de aplicação executa o caso de uso; agregado protege a regra de negócio**.
+
+```mermaid
+flowchart LR
+    C["Controller"] --> H["Command ou Query Handler"]
+    H --> R["Interface de Repository"]
+    H --> D["Agregado do Domain"]
+    R --> E["Repository EF Core"]
+    H --> U["Unit of Work"]
+    U --> DB[("SQL Server")]
+    H --> S["Cache, token, e-mail ou evento"]
+```
+
+#### Repository: porta para os agregados
+
+O contrato [IPatientRepository.cs](../src/ClinicHub.Domain/Interfaces/IPatientRepository.cs) define as operações necessárias para trabalhar com `Patient`: buscar por ID ou usuário, verificar e-mail, pesquisar, adicionar e atualizar. Ele pertence à camada interna porque a regra de negócio depende da **capacidade** de obter e persistir pacientes, mas não deve depender de EF Core ou SQL Server.
+
+A implementação [PatientRepository.cs](../src/ClinicHub.Infrastructure/Persistence/Repositories/PatientRepository.cs) usa `ClinicHubDbContext` e EF Core. A Application recebe apenas `IPatientRepository`; por isso, nos testes é possível usar um mock e, no futuro, a tecnologia de persistência pode mudar sem reescrever os casos de uso.
+
+O repository não deve decidir regras clínicas, enviar e-mail, invalidar cache ou devolver resposta HTTP. Ele também não confirma a transação: prepara as alterações no `DbContext`.
+
+#### Handler: o service de aplicação deste projeto
+
+Em vez de uma classe genérica como `PatientService`, o ClinicHub usa handlers do MediatR como services de aplicação. Cada handler representa uma intenção específica e pequena. Veja [CreatePatientCommandHandler.cs](../src/ClinicHub.Application/Patients/Commands/CreatePatient/CreatePatientCommandHandler.cs):
+
+1. Cria os value objects `PersonName`, `EmailAddress` e `PhoneNumber`.
+2. Consulta o repository para impedir e-mail duplicado.
+3. Pede ao agregado `Patient` para criar-se e aplicar suas invariantes.
+4. Chama `AddAsync` no repository.
+5. Confirma a alteração com `IUnitOfWork.SaveChangesAsync`.
+6. Invalida a listagem Redis e retorna um DTO.
+
+O handler **coordena**; o agregado **decide a regra**. Por exemplo, uma transição inválida de `Appointment` deve continuar dentro de `Appointment`, não ser uma sequência de `if` no controller ou no repository.
+
+#### Services técnicos e leitura otimizada
+
+O projeto também possui services técnicos, sempre protegidos por interfaces: hash de senha, JWT, relógio UTC, e-mail, Redis e RabbitMQ. Eles fornecem uma capacidade externa ou transversal, não acesso a agregados. As associações entre interfaces e implementações estão em [InfrastructureServiceCollectionExtensions.cs](../src/ClinicHub.Infrastructure/DependencyInjection/InfrastructureServiceCollectionExtensions.cs).
+
+Para consultas analíticas, não é obrigatório passar por repository. O relatório financeiro usa [IRevenueReportReader.cs](../src/ClinicHub.Application/Financial/Abstractions/IRevenueReportReader.cs) e [DapperRevenueReportReader.cs](../src/ClinicHub.Infrastructure/Financial/DapperRevenueReportReader.cs), pois precisa de uma projeção SQL eficiente, não de um agregado que será alterado.
+
+#### Unit of Work e ciclo de vida
+
+[IUnitOfWork.cs](../src/ClinicHub.Domain/Interfaces/IUnitOfWork.cs) representa o ponto de confirmação. Sua implementação delega para `DbContext.SaveChangesAsync`; repositories e Unit of Work são registrados como `Scoped`, portanto compartilham o mesmo `DbContext` durante a requisição. Isso permite preparar várias mudanças e confirmá-las na mesma transação.
+
+Pergunta de estudo: por que `CreatePatientCommandHandler` só deve invalidar o cache depois de `SaveChangesAsync` ter sido concluído?
+
 ### API: a borda HTTP
 
 O arquivo [Program.cs](../src/ClinicHub.API/Program.cs) é o **composition root**: registra dependências, autenticação, CORS, Serilog, Swagger e health checks. Controllers convertem HTTP em Commands/Queries. Compare [AppointmentsController.cs](../src/ClinicHub.API/Controllers/AppointmentsController.cs) com seu handler na Application.
