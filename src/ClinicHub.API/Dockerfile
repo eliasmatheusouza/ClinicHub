@@ -2,6 +2,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
+RUN addgroup --system --gid 10001 clinichub \
+    && adduser --system --uid 10001 --ingroup clinichub --home /app --shell /usr/sbin/nologin clinichub
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
@@ -16,5 +18,6 @@ RUN dotnet publish "ClinicHub.API.csproj" -c Release -o /app/publish /p:UseAppHo
 
 FROM base AS final
 WORKDIR /app
-COPY --from=build /app/publish .
+COPY --from=build --chown=clinichub:clinichub /app/publish .
+USER clinichub
 ENTRYPOINT ["dotnet", "ClinicHub.API.dll"]

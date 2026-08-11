@@ -149,6 +149,7 @@ O escopo original foi concluído. A evolução recomendada para transformar o pr
 - [Capacidade, performance e critérios de carga](docs/capacidade-e-performance.md)
 - [Auditoria, autorização e evolução do ownership](docs/auditoria-e-autorizacao.md)
 - [Proteção de dados, masking e plano de criptografia](docs/protecao-de-dados.md)
+- [Hardening de deploy, secrets e DAST](docs/hardening-deploy.md)
 - [Architecture Decision Records](docs/adr)
 
 ## Estrutura do repositório

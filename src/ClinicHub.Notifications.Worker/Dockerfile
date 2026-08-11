@@ -1,5 +1,7 @@
 FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
 WORKDIR /app
+RUN addgroup --system --gid 10001 clinichub \
+    && adduser --system --uid 10001 --ingroup clinichub --home /app --shell /usr/sbin/nologin clinichub
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
@@ -14,5 +16,6 @@ RUN dotnet publish "ClinicHub.Notifications.Worker.csproj" -c Release -o /app/pu
 
 FROM base AS final
 WORKDIR /app
-COPY --from=build /app/publish .
+COPY --from=build --chown=clinichub:clinichub /app/publish .
+USER clinichub
 ENTRYPOINT ["dotnet", "ClinicHub.Notifications.Worker.dll"]

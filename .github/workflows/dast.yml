@@ -1,0 +1,56 @@
+name: DAST baseline
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "43 3 * * 6"
+
+permissions:
+  contents: read
+
+jobs:
+  zap-baseline:
+    name: OWASP ZAP baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start isolated test stack
+        run: docker compose --env-file .env.example up -d --build
+
+      - name: Wait for API readiness
+        shell: bash
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error http://localhost:8082/health/ready; then
+              exit 0
+            fi
+            sleep 5
+          done
+          docker compose logs api
+          exit 1
+
+      - name: Scan API with OWASP ZAP
+        shell: bash
+        run: |
+          docker run --rm \
+            --network clinichub_clinichub \
+            --volume "${PWD}:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://api:8080 -m 2 -I -r zap-report.html -J zap-report.json
+
+      - name: Publish ZAP reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dast-zap-report
+          path: |
+            zap-report.html
+            zap-report.json
+          if-no-files-found: warn
+
+      - name: Stop isolated test stack
+        if: always()
+        run: docker compose --env-file .env.example down -v

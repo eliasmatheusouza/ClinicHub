@@ -1,0 +1,76 @@
+name: clinichub-production
+
+# Modelo de produção: use imagens publicadas e secrets externos.
+# Nenhum serviço interno publica porta no host. Um proxy TLS gerenciado deve
+# alcançar somente o frontend pela rede de borda e a API pela rede interna.
+services:
+  frontend:
+    image: ${CLINICHUB_FRONTEND_IMAGE:?Defina CLINICHUB_FRONTEND_IMAGE}
+    expose:
+      - "8080"
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /var/log/nginx
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - edge
+
+  api:
+    image: ${CLINICHUB_API_IMAGE:?Defina CLINICHUB_API_IMAGE}
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__SqlServer: ${SQLSERVER_CONNECTION_STRING:?Forneça pelo secret manager da plataforma}
+      ConnectionStrings__Redis: ${REDIS_CONNECTION_STRING:?Forneça pelo secret manager da plataforma}
+      RabbitMq__ConnectionString: ${RABBITMQ_CONNECTION_STRING:?Forneça pelo secret manager da plataforma}
+      AllowedHosts: ${API_ALLOWED_HOSTS:?Defina o host público da API}
+      Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN:?Defina a origem HTTPS do frontend}
+      EmailConfirmation__FrontendUrl: ${FRONTEND_ORIGIN:?Defina a origem HTTPS do frontend}
+      Email__DeliveryMode: Smtp
+      Email__From: ${EMAIL_FROM:?Defina o remetente}
+      Email__Smtp__Host: ${EMAIL_SMTP_HOST:?Defina o host SMTP}
+      Email__Smtp__Username: ${EMAIL_SMTP_USERNAME:?Forneça pelo secret manager da plataforma}
+      Jwt__Key: ${JWT_KEY:?Forneça pelo secret manager da plataforma}
+      Email__Smtp__Password: ${EMAIL_SMTP_PASSWORD:?Forneça pelo secret manager da plataforma}
+    expose:
+      - "8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - edge
+      - internal
+
+  notifications-worker:
+    image: ${CLINICHUB_WORKER_IMAGE:?Defina CLINICHUB_WORKER_IMAGE}
+    environment:
+      DOTNET_ENVIRONMENT: Production
+      ConnectionStrings__SqlServer: ${SQLSERVER_CONNECTION_STRING:?Forneça pelo secret manager da plataforma}
+      ConnectionStrings__Redis: ${REDIS_CONNECTION_STRING:?Forneça pelo secret manager da plataforma}
+      RabbitMq__ConnectionString: ${RABBITMQ_CONNECTION_STRING:?Forneça pelo secret manager da plataforma}
+      Seq__ServerUrl: ${SEQ_SERVER_URL:-}
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - internal
+
+networks:
+  edge:
+    external: true
+    name: ${CLINICHUB_EDGE_NETWORK:-clinichub-edge}
+  internal:
+    internal: true
