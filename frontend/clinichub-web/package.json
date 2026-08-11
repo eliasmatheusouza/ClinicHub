@@ -32,5 +32,12 @@
     "prettier": "^3.8.1",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"
+  },
+  "overrides": {
+    "@hono/node-server": "2.0.5",
+    "node-gyp": {
+      "undici": "6.28.0"
+    },
+    "undici": "7.29.0"
   }
 }
