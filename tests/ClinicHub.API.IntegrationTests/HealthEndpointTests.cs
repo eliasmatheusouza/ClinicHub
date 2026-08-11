@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using ClinicHub.API.Security;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -26,6 +27,10 @@ public sealed class HealthEndpointTests : IClassFixture<ClinicHubApiFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(response.Headers.TryGetValues("X-Correlation-ID", out var values));
         Assert.Contains("integration-test-correlation", values);
+        Assert.Equal("nosniff", response.Headers.GetValues("X-Content-Type-Options").Single());
+        Assert.Equal("DENY", response.Headers.GetValues("X-Frame-Options").Single());
+        Assert.Equal("no-referrer", response.Headers.GetValues("Referrer-Policy").Single());
+        Assert.Contains("frame-ancestors 'none'", response.Headers.GetValues("Content-Security-Policy").Single());
     }
 
     [Fact]
@@ -39,6 +44,50 @@ public sealed class HealthEndpointTests : IClassFixture<ClinicHubApiFactory>
 
         Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
     }
+}
+
+public sealed class ProductionConfigurationValidatorTests
+{
+    [Fact]
+    public void Validate_WhenProductionSettingsAreSecure_DoesNotThrow()
+    {
+        var configuration = Configuration(new Dictionary<string, string?>
+        {
+            ["Jwt:Key"] = "production-secret-key-that-is-longer-than-thirty-two-characters",
+            ["AllowedHosts"] = "api.clinichub.example",
+            ["Cors:AllowedOrigins:0"] = "https://app.clinichub.example",
+            ["EmailConfirmation:FrontendUrl"] = "https://app.clinichub.example",
+            ["Email:DeliveryMode"] = "Smtp"
+        });
+
+        var exception = Record.Exception(() => ProductionConfigurationValidator.Validate(configuration));
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void Validate_WhenDevelopmentValuesAreUsed_ThrowsWithAllRelevantErrors()
+    {
+        var configuration = Configuration(new Dictionary<string, string?>
+        {
+            ["Jwt:Key"] = "development-only-change-this-key-with-at-least-32-characters",
+            ["AllowedHosts"] = "*",
+            ["Cors:AllowedOrigins:0"] = "http://localhost:4200",
+            ["EmailConfirmation:FrontendUrl"] = "http://localhost:4200",
+            ["Email:DeliveryMode"] = "Log"
+        });
+
+        var exception = Assert.Throws<InvalidOperationException>(() => ProductionConfigurationValidator.Validate(configuration));
+
+        Assert.Contains("Jwt:Key", exception.Message);
+        Assert.Contains("AllowedHosts", exception.Message);
+        Assert.Contains("Cors:AllowedOrigins", exception.Message);
+        Assert.Contains("EmailConfirmation:FrontendUrl", exception.Message);
+        Assert.Contains("Email:DeliveryMode", exception.Message);
+    }
+
+    private static IConfiguration Configuration(IReadOnlyDictionary<string, string?> values) =>
+        new ConfigurationBuilder().AddInMemoryCollection(values).Build();
 }
 
 public sealed class ClinicHubApiFactory : WebApplicationFactory<Program>

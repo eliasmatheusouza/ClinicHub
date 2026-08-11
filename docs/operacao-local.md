@@ -36,3 +36,30 @@ Invoke-WebRequest http://localhost:8082/health/ready
 ## E-mail de confirmação
 
 O padrão de desenvolvimento é `EMAIL_DELIVERY_MODE=Log`: o link é emitido nos logs da API. Para SMTP real, configure as variáveis `EMAIL_FROM`, `EMAIL_SMTP_HOST`, `EMAIL_SMTP_PORT`, `EMAIL_SMTP_USE_SSL`, `EMAIL_SMTP_USERNAME` e `EMAIL_SMTP_PASSWORD`, e altere o modo para `Smtp`.
+
+## Configuração de Production
+
+O `docker-compose.yml` e o `.env.example` são exclusivos para desenvolvimento. Em produção, não reutilize senhas, chaves JWT, seed de usuários ou o modo de e-mail `Log` presentes neles.
+
+A API valida a configuração na inicialização quando `ASPNETCORE_ENVIRONMENT=Production` e não inicia se detectar:
+
+- `Jwt:Key` previsível, com menos de 32 caracteres ou contendo valor de desenvolvimento;
+- `AllowedHosts` vazio ou igual a `*`;
+- origem CORS ou URL de confirmação de e-mail sem HTTPS;
+- envio de e-mail diferente de SMTP.
+
+Forneça os valores por secret manager/variáveis seguras, por exemplo:
+
+```text
+ASPNETCORE_ENVIRONMENT=Production
+Jwt__Key=<segredo-aleatorio-com-32-ou-mais-caracteres>
+Cors__AllowedOrigins__0=https://app.exemplo.com
+AllowedHosts=api.exemplo.com
+EmailConfirmation__FrontendUrl=https://app.exemplo.com
+Email__DeliveryMode=Smtp
+Email__Smtp__Host=smtp.exemplo.com
+Email__Smtp__Username=<usuario-smtp>
+Email__Smtp__Password=<segredo-smtp>
+```
+
+Em produção, a aplicação habilita HTTPS redirection e HSTS. Quando houver reverse proxy/TLS termination, defina claramente se essa responsabilidade ficará no proxy ou na API e configure somente proxies confiáveis antes de aceitar cabeçalhos encaminhados. Os endpoints de autenticação possuem rate limiting; os limites podem ser ajustados por `RateLimiting__<Politica>__PermitLimit` e `RateLimiting__<Politica>__WindowSeconds`.

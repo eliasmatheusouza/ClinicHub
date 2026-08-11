@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using ClinicHub.API.ExceptionHandling;
 using ClinicHub.API.HealthChecks;
 using ClinicHub.API.Middleware;
+using ClinicHub.API.Security;
 using ClinicHub.API.Swagger;
 using ClinicHub.Application.DependencyInjection;
 using ClinicHub.Infrastructure.DependencyInjection;
@@ -23,6 +24,11 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+
+    if (builder.Environment.IsProduction())
+    {
+        ProductionConfigurationValidator.Validate(builder.Configuration);
+    }
 
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration)
@@ -102,10 +108,17 @@ try
     }
 
     app.UseMiddleware<CorrelationIdMiddleware>();
+    app.UseMiddleware<SecurityHeadersMiddleware>();
     app.UseSerilogRequestLogging();
     app.UseExceptionHandler();
     app.UseCors("frontend");
     app.UseRateLimiter();
+
+    if (app.Environment.IsProduction())
+    {
+        app.UseHsts();
+        app.UseHttpsRedirection();
+    }
 
     if (app.Environment.IsDevelopment())
     {
