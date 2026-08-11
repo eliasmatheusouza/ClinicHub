@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
 import { finalize } from 'rxjs';
-import { Patient } from '../../core/models/clinic.models';
+import { Patient, PatientListItem } from '../../core/models/clinic.models';
 import { PatientPayload, PatientsService } from './patients.service';
 
 @Component({ selector: 'app-patients', imports: [ReactiveFormsModule, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, MatTableModule], templateUrl: './patients.component.html', styleUrl: './patients.component.scss' })
@@ -16,7 +16,7 @@ export class PatientsComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   readonly filter = this.formBuilder.nonNullable.control('');
   readonly form = this.formBuilder.nonNullable.group({ name: ['', Validators.required], birthDate: ['', Validators.required], email: ['', [Validators.required, Validators.email]], phone: ['', Validators.required] });
-  readonly patients = signal<Patient[]>([]);
+  readonly patients = signal<PatientListItem[]>([]);
   readonly totalCount = signal(0);
   readonly page = signal(1);
   readonly editingId = signal<string | null>(null);
@@ -32,13 +32,22 @@ export class PatientsComponent implements OnInit {
       error: () => this.error = 'Não foi possível carregar pacientes.'
     });
   }
-  edit(patient: Patient): void { this.editingId.set(patient.id); this.form.setValue({ name: patient.name, birthDate: patient.birthDate, email: patient.email, phone: patient.phone }); }
+  edit(patient: PatientListItem): void {
+    this.error = '';
+    this.service.getById(patient.id).subscribe({
+      next: (detail) => {
+        this.editingId.set(detail.id);
+        this.form.setValue({ name: detail.name, birthDate: detail.birthDate, email: detail.email, phone: detail.phone });
+      },
+      error: () => this.error = 'Não foi possível carregar os dados completos do paciente.'
+    });
+  }
   save(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     const payload = this.form.getRawValue() as PatientPayload;
     const request = this.editingId() ? this.service.update(this.editingId()!, payload) : this.service.create(payload);
     request.subscribe({ next: () => { this.reset(); this.load(1); }, error: (error) => this.error = error.error?.errors?.[0]?.message ?? 'Não foi possível salvar o paciente.' });
   }
-  deactivate(patient: Patient): void { this.service.deactivate(patient.id).subscribe({ next: () => this.load(), error: () => this.error = 'Não foi possível desativar o paciente.' }); }
+  deactivate(patient: PatientListItem): void { this.service.deactivate(patient.id).subscribe({ next: () => this.load(), error: () => this.error = 'Não foi possível desativar o paciente.' }); }
   reset(): void { this.form.reset({ name: '', birthDate: '', email: '', phone: '' }); this.editingId.set(null); }
 }

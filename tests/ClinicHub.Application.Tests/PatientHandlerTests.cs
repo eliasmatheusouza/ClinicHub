@@ -55,15 +55,18 @@ public sealed class PatientHandlerTests
             .ReturnsAsync(new PatientSearchResult([patient], 1));
         var cache = Cache();
         cache.Setup(value => value.GetVersionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(2);
-        cache.Setup(value => value.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((PagedResult<PatientDto>?)null);
-        cache.Setup(value => value.SetAsync(It.IsAny<string>(), It.IsAny<PagedResult<PatientDto>>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        cache.Setup(value => value.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((PagedResult<PatientListItemDto>?)null);
+        cache.Setup(value => value.SetAsync(It.IsAny<string>(), It.IsAny<PagedResult<PatientListItemDto>>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         var handler = new SearchPatientsQueryHandler(repository.Object, cache.Object);
 
         var result = await handler.Handle(new("maria", 1, 20), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Single(result.Value!.Items);
-        cache.Verify(value => value.SetAsync(It.Is<string>(key => key.Contains("v2")), It.IsAny<PagedResult<PatientDto>>(), TimeSpan.FromMinutes(5), It.IsAny<CancellationToken>()), Times.Once);
+        var item = Assert.Single(result.Value.Items);
+        Assert.Equal("m***@clinichub.local", item.EmailMasked);
+        Assert.Equal("*******9999", item.PhoneMasked);
+        cache.Verify(value => value.SetAsync(It.Is<string>(key => key.Contains("v2")), It.IsAny<PagedResult<PatientListItemDto>>(), TimeSpan.FromMinutes(5), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private static Patient CreatePatient() => Patient.Create(

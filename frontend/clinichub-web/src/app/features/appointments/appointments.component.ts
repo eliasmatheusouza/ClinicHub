@@ -6,7 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { Appointment, DoctorOption, Patient } from '../../core/models/clinic.models';
+import { Appointment, DoctorOption, PatientListItem } from '../../core/models/clinic.models';
 import { PatientsService } from '../patients/patients.service';
 import { AppointmentsService } from './appointments.service';
 
@@ -15,7 +15,7 @@ export class AppointmentsComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly appointmentsService = inject(AppointmentsService);
   private readonly patientsService = inject(PatientsService);
-  readonly patients = signal<Patient[]>([]);
+  readonly patients = signal<PatientListItem[]>([]);
   readonly doctors = signal<DoctorOption[]>([]);
   readonly appointment = signal<Appointment | null>(null);
   readonly form = this.formBuilder.nonNullable.group({ patientId: ['', Validators.required], doctorId: ['', Validators.required], start: ['', Validators.required], durationMinutes: [30, [Validators.required, Validators.min(15), Validators.max(480)]] });

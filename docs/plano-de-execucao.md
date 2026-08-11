@@ -25,7 +25,7 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 17 | Análise estática e Quality Gate | ⬜ Pendente | Integrar SonarQube/SonarCloud e validar qualidade de código novo na pipeline. |
 | 18 | Governança de pull requests | ⬜ Pendente | Proteger `main`, exigir checks aprovados e impedir merge fora do fluxo de revisão. |
 | 19 | Defesa da API | ✅ Concluída | Rate limiting nas rotas de autenticação, headers HTTP, HTTPS/HSTS em Production e validação de configuração segura. |
-| 20 | Dados, auditoria e ownership | 🟨 Em andamento | Audit trail, políticas nomeadas e ownership do paciente implementados; masking e plano de criptografia seguem pendentes. |
+| 20 | Dados, auditoria e ownership | ✅ Concluída | Audit trail, policies, ownership, minimização/masking e plano de criptografia documentado e validado. |
 | 21 | Hardening de deploy | ⬜ Pendente | HTTPS, containers não-root, portas privadas, secrets externos e DAST em ambiente de teste. |
 | 22 | Capacidade e performance | ⬜ Pendente | Definir SLOs, criar testes de carga e declarar capacidade com métricas reproduzíveis. |
 
@@ -263,6 +263,9 @@ As etapas 19 a 21 aplicam os controles prioritários identificados na avaliaçã
 - Controllers administrativos agora usam policies nomeadas, centralizando a relação entre permissões e roles no composition root.
 - A associação única e opcional `Patient.UserId` foi implementada com migration. O portal autenticado usa apenas rotas `/me`, filtra pelo usuário extraído do JWT e não aceita identificadores de prontuários no cliente; a criação duplicada de perfil é recusada.
 - Adicionados casos de uso e testes para criar e consultar o perfil próprio. Uma conta diferente recebe `patient.profile.not_found` em vez de dados de outro paciente. O fluxo administrativo de vincular um prontuário pré-existente continua pendente e exige validação explícita pela clínica.
+- A listagem e o cache Redis de pacientes agora propagam DTOs minimizados: nascimento não é listado e e-mail/telefone são mascarados. O frontend busca o detalhe completo somente quando um operador autorizado abre o registro para edição.
+- Definido o plano de criptografia com banco/backups protegidos, envelope encryption via KMS/Key Vault, rotação e tratamento especial para campos pesquisáveis; nenhuma chave é adicionada ao código ou a `appsettings`. Detalhes em `docs/protecao-de-dados.md` e ADR 0006.
+- Validações de encerramento: build .NET Release, lint/build Angular, 50 testes, gate de cobertura e migration idempotente validados.
 
 ## Capacidade e performance
 

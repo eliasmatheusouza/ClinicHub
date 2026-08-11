@@ -12,13 +12,13 @@ internal sealed class RedisPatientListCache(IConnectionMultiplexer connectionMul
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
     private readonly IDatabase _database = connectionMultiplexer.GetDatabase();
 
-    public async Task<PagedResult<PatientDto>?> GetAsync(string key, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<PatientListItemDto>?> GetAsync(string key, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         try
         {
             var value = await _database.StringGetAsync(key);
-            return value.IsNullOrEmpty ? null : JsonSerializer.Deserialize<PagedResult<PatientDto>>(value!, SerializerOptions);
+            return value.IsNullOrEmpty ? null : JsonSerializer.Deserialize<PagedResult<PatientListItemDto>>(value!, SerializerOptions);
         }
         catch (RedisException exception)
         {
@@ -27,7 +27,7 @@ internal sealed class RedisPatientListCache(IConnectionMultiplexer connectionMul
         }
     }
 
-    public async Task SetAsync(string key, PagedResult<PatientDto> value, TimeSpan timeToLive, CancellationToken cancellationToken = default)
+    public async Task SetAsync(string key, PagedResult<PatientListItemDto> value, TimeSpan timeToLive, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         try

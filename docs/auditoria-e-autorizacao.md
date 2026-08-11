@@ -52,4 +52,8 @@ Nenhuma dessas rotas recebe um `patientId` do cliente. A consulta é filtrada na
 
 Quando já existir um prontuário administrativo com o mesmo e-mail, o portal recusa a autocriação. A associação desse caso deve ser feita em fluxo administrativo verificado (convite/validação pela clínica), nunca simplesmente por um e-mail informado no cliente.
 
-Ainda pendentes nesta etapa: DTOs específicos para mascarar campos em novos casos de uso, política de retenção/criptografia para dados sensíveis e uma interface Angular para o portal.
+Como evolução de produto, ainda falta uma interface Angular para o portal e um fluxo administrativo verificado para vincular prontuários pré-existentes.
+
+## Minimização e criptografia
+
+A listagem e o cache de pacientes agora usam um DTO com e-mail e telefone mascarados; o detalhe é carregado somente ao abrir o registro autorizado. A estratégia de criptografia, gestão de chaves, rotação e governança LGPD está em [proteção de dados](protecao-de-dados.md).
