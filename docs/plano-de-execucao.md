@@ -4,6 +4,8 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 
 **Legenda:** `⬜ Pendente` · `🟨 Em andamento` · `✅ Concluída`
 
+> **Compromisso pedagógico:** como o ClinicHub é aberto à comunidade, toda decisão técnica relevante deve deixar uma explicação simples do problema, da solução, dos limites, da forma de validar e dos próximos passos. Código, pipeline e documentação devem evoluir juntos; descobertas úteis feitas durante a implementação são registradas nos documentos temáticos e no plano.
+
 | # | Etapa | Status | Entregáveis e critério de confirmação |
 |---:|---|---|---|
 | 1 | Setup do projeto | ✅ Concluída | Solution .NET 8 estruturada, referências entre camadas, Docker Compose e build/configuração validados. |

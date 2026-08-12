@@ -7,6 +7,28 @@ O ClinicHub usa duas formas complementares de análise:
 
 CodeQL continua responsável por SAST no GitHub; Sonar acrescenta code smells, duplicação, métricas de manutenção e um gate focado em código novo.
 
+## O que o Sonar faz — e o que ele não faz
+
+Sonar é uma ferramenta de **análise estática**: ela lê o código e os relatórios gerados pela esteira sem precisar executar o sistema como um usuário. Suas regras procuram padrões que costumam causar defeitos, vulnerabilidades ou dificultar a manutenção. No ClinicHub, a análise é feita depois de compilar e testar o backend; o scanner envia os resultados e a cobertura para o SonarCloud, que calcula o resultado do Quality Gate.
+
+| Recurso | Pergunta que ajuda a responder | Exemplo prático no ClinicHub |
+|---|---|---|
+| Bugs / Reliability | Há código com grande chance de se comportar errado? | Um valor pode ser nulo, uma condição é sempre verdadeira ou uma exceção não é tratada. |
+| Vulnerabilities / Security | Uma regra conhecida de segurança foi violada? | Entrada pode chegar a uma consulta, log ou resposta HTTP de forma insegura. |
+| Security hotspots | Este trecho merece revisão humana por ser sensível? | Uso de criptografia, autenticação ou configuração de cabeçalhos; não é automaticamente uma falha. |
+| Code smells / Maintainability | O código ficará difícil de entender, alterar ou testar? | Propriedade sem uso, método excessivamente complexo ou acoplamento desnecessário. |
+| Duplicação | Estamos repetindo lógica que pode divergir no futuro? | Dois fluxos com o mesmo bloco de regra de negócio. |
+| Cobertura | Os testes executaram as linhas e ramos alterados? | O Coverlet gera OpenCover; o SonarCloud importa esse relatório, não inventa testes. |
+
+O Sonar **não substitui** testes unitários, integração ou ponta a ponta; ele não prova que uma regra de negócio está correta. Também não substitui CodeQL, Dependabot ou OWASP ZAP: eles são controles complementares para SAST, dependências e teste dinâmico. Um Quality Gate verde significa que as regras configuradas foram atendidas; não significa que o software está livre de qualquer defeito ou risco.
+
+### Como interpretar um achado
+
+1. Abra o achado e leia a regra e o trecho apontado.
+2. Verifique o contexto do domínio e a exposição real. Hotspots exigem essa investigação antes de serem marcados como seguros.
+3. Corrija o código e escreva ou ajuste um teste quando o risco representar comportamento verificável.
+4. Se for falso positivo ou dívida aceita conscientemente, registre a justificativa no SonarCloud e, quando necessário, abra item de backlog. Nunca silencie a regra apenas para deixar o painel verde.
+
 ## 1. Subir o laboratório local
 
 Com Docker Desktop em execução, na raiz do repositório:

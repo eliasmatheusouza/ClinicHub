@@ -1,6 +1,6 @@
 # ClinicHub
 
-Plataforma full stack de gestão de pacientes, consultas e financeiro para clínicas médicas. O projeto é um laboratório de arquitetura e práticas de engenharia: .NET 8, Angular standalone, Clean Architecture, mensageria, cache distribuído, observabilidade e CI/CD.
+Plataforma full stack de gestão de pacientes, consultas e financeiro para clínicas médicas. O projeto é um laboratório aberto de arquitetura e práticas de engenharia: .NET 8, Angular standalone, Clean Architecture, mensageria, cache distribuído, observabilidade e CI/CD. Cada evolução relevante é acompanhada de explicação, limites e evidência de validação para que a comunidade consiga aprender pelo código e pela documentação.
 
 [![CI](https://github.com/eliasmatheusouza/ClinicHub/actions/workflows/ci.yml/badge.svg)](https://github.com/eliasmatheusouza/ClinicHub/actions/workflows/ci.yml)
 
