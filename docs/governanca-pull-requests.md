@@ -36,6 +36,8 @@ Depois da primeira análise remota aprovada:
 3. Adicione `SonarCloud quality gate` aos checks obrigatórios.
 4. Revise se a política de administradores deve passar a ser aplicada sem exceção.
 
+O roteiro completo, incluindo os valores pendentes no GitHub e o checklist de conclusão, está em [configurar SonarQube Cloud gratuito](configurar-sonarcloud-gratuito.md).
+
 ## Fluxo de trabalho
 
 ```text

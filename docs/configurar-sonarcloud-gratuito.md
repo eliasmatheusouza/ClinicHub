@@ -16,6 +16,24 @@ Ao final, o GitHub terá três configurações, todas já previstas no workflow 
 
 O workflow só começa a analisar quando as duas variáveis existirem. Assim, não há aprovação falsa enquanto a conta ainda não está configurada.
 
+## Estado atual do ClinicHub
+
+Esta é a fotografia da implementação em 11/08/2026. Ela separa claramente o que já foi comprovado do que depende da sua conta externa.
+
+| Área | Estado | Evidência ou decisão |
+|---|---|---|
+| Laboratório local | Concluído | SonarQube Community Build, PostgreSQL e `dotnet-sonarscanner` 11.2.1 versionados. |
+| Análise local .NET | Concluída | Quality Gate padrão aprovado; 49,1% de cobertura geral, 0 bugs e 0% de duplicação. |
+| Achados locais | Registrados | 44 code smells, 2 vulnerabilidades e 8 security hotspots legados aguardam triagem; o gate padrão não os apaga. |
+| Workflow remoto | Versionado, aguardando configuração | `.github/workflows/sonar.yml` fica ignorado até receber as duas variáveis e o secret. |
+| `SONAR_TOKEN` | Pendente | Deve ser criado por você no SonarQube Cloud e guardado exclusivamente como Secret do GitHub. |
+| `SONAR_ORGANIZATION` | Pendente | Será obtida ao criar/importar a organização no SonarQube Cloud. |
+| `SONAR_PROJECT_KEY` | Pendente | Será obtida ao importar o repositório ClinicHub. |
+| Proteção da `main` | Ativa | PR, uma aprovação, conversas resolvidas, histórico linear e checks de CI, CodeQL e DAST são obrigatórios. |
+| Check SonarCloud obrigatório | Pendente | Só será adicionado depois da primeira análise remota aprovada. |
+
+Os valores pendentes não são arquivos ausentes: são identificadores e uma credencial que só o painel do SonarQube Cloud pode gerar para a sua conta. Eles não devem ser inventados, compartilhados ou versionados.
+
 ## 1. Criar a conta e conectar o GitHub
 
 1. Abra [SonarQube Cloud](https://sonarcloud.io/) e escolha entrar com **GitHub**.
@@ -88,6 +106,20 @@ O primeiro comando pede o token sem exibi-lo. Nunca substitua o prompt por um to
 Somente após uma análise remota aprovada, no GitHub abra **Settings > Branches > main > Edit** e inclua o check exibido pelo GitHub, normalmente `SonarCloud quality gate`, em **Require status checks to pass before merging**.
 
 A `main` já possui proteção para CI, CodeQL e DAST. O SonarCloud é acrescentado depois para evitar bloquear pull requests com um check ainda não configurado. Ao concluir este passo, atualize a Etapa 17 para concluída e a Etapa 18 também poderá ser concluída.
+
+## Checklist de conclusão
+
+Use esta lista quando for executar a configuração:
+
+- [ ] A conta/organização SonarQube Cloud foi criada no plano Free para o repositório público.
+- [ ] `eliasmatheusouza/ClinicHub` foi importado e aparece como projeto no painel.
+- [ ] O token foi criado, copiado uma única vez e salvo como `SONAR_TOKEN` no GitHub.
+- [ ] `SONAR_ORGANIZATION` e `SONAR_PROJECT_KEY` foram criadas como variáveis de repositório.
+- [ ] O workflow **Sonar Quality Gate** foi executado em `main` sem ser ignorado.
+- [ ] O painel recebeu cobertura OpenCover e exibiu o resultado do Quality Gate.
+- [ ] Uma alteração de teste em pull request confirmou que o check aparece e falha quando o gate reprova.
+- [ ] `SonarCloud quality gate` foi incluído nos checks obrigatórios da proteção da `main`.
+- [ ] As Etapas 17 e 18 foram atualizadas para concluídas no plano de execução.
 
 ## Diagnóstico rápido
 

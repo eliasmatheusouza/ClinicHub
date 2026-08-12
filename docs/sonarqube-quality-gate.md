@@ -65,6 +65,8 @@ O scanner usa `sonar.qualitygate.wait=true`; portanto, o job retorna erro quando
 
 Para configurar a conta gratuita, os tokens e as variáveis do GitHub passo a passo, consulte [configurar SonarQube Cloud gratuito](configurar-sonarcloud-gratuito.md).
 
+O documento de configuração também mantém a fotografia do que já foi validado localmente e do que ainda depende do SonarQube Cloud.
+
 ## Limites e decisões conscientes
 
 - O laboratório local serve para prática e não substitui o check remoto em PR.
