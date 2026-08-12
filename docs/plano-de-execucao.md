@@ -29,22 +29,31 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 19 | Defesa da API | ✅ Concluída | Rate limiting nas rotas de autenticação, headers HTTP, HTTPS/HSTS em Production e validação de configuração segura. |
 | 20 | Dados, auditoria e ownership | ✅ Concluída | Audit trail, policies, ownership, minimização/masking e plano de criptografia documentado e validado. |
 | 21 | Hardening de deploy | ✅ Concluída | Imagens não-root, manifesto de produção isolado, secrets externos e DAST remoto com artefato revisado e sem alertas de risco. |
-| 22 | Capacidade e performance | ⬜ Pendente | Definir SLOs, criar testes de carga e declarar capacidade com métricas reproduzíveis. |
+| 22 | Capacidade e performance | ✅ Concluída | Benchmark local reproduzível: três repetições de leitura frio/quente a 25 VUs, telemetria de contêineres e três execuções mistas de agenda a 10 VUs/50 ciclos. Capacidade declarada apenas para o laboratório; qualificação de produção ficou documentada como evolução futura. |
+| 23 | Confiabilidade de eventos | ⬜ Pendente | Outbox, publicação confiável, retry limitado, DLQ, idempotência e testes de falha para notificações. |
+| 24 | Observabilidade operacional | ⬜ Pendente | OpenTelemetry, traces correlacionados, métricas, dashboards e alertas de erro, latência e fila. |
+| 25 | Testes end-to-end | ⬜ Pendente | Suite Playwright em stack isolada da CI para jornadas críticas autenticadas. |
+| 26 | Autorização por recurso | ⬜ Pendente | Policies por tenant, clínica, profissional e paciente; filtros de ownership no servidor e testes de acesso negado. |
+| 27 | Privacidade e LGPD aplicada | ⬜ Pendente | Inventário de dados, retenção, exportação/anonimização sob regras, masking e auditoria de acesso. |
+| 28 | Cloud e infraestrutura como código | ⬜ Pendente | Ambiente didático repetível com IaC, secrets, orçamento, backup/restore e destruição segura. |
+| 29 | Robustez do frontend | ⬜ Pendente | Guards, tratamento global de erro, estados acessíveis, sessão e testes de componentes Angular. |
+| 30 | Arquitetura ensinável | 🟨 Em andamento | Catálogo didático das escolhas atuais criado; faltam diagramas C4 atualizados e ADRs para novas decisões relevantes. |
+| 31 | Evolução funcional do produto | ⬜ Pendente | Entregas incrementais de agenda dinâmica, portal, PEP, documentos clínicos e notificações reais com regras de negócio, segurança e operação. |
 
 ## Próximas etapas priorizadas
 
-Esta é a ordem de continuidade aprovada após a conclusão das etapas 16 e 21. Cada item só avança após sua evidência técnica ser registrada.
+A continuidade foi atualizada após as etapas de Quality Gate, governança de pull requests e hardening. Cada item só avança após sua evidência técnica ser registrada.
 
 | Prioridade | Trabalho | Resultado esperado |
 |---:|---|---|
-| 1 | **Etapa 17 — SonarQube/SonarCloud e Quality Gate** | Analisar código novo para bugs, vulnerabilidades, duplicação e cobertura; falhar a CI quando o padrão não for atendido. |
-| 2 | **Etapa 18 — Governança de Pull Requests** | Proteger `main`, exigir revisão e tornar CI, CodeQL, DAST e Quality Gate obrigatórios antes do merge. |
-| 3 | **Etapa 22 — Capacidade e performance** | Criar cenários k6, definir SLOs e medir p95/p99, erros, throughput, banco, cache e filas antes de declarar capacidade simultânea. |
-| 4 | **Resiliência de eventos** | Implementar outbox, retry limitado, DLQ e idempotência para que notificações não sejam perdidas silenciosamente. |
-| 5 | **Produção operada** | Publicar imagens em registry, aplicar IaC, configurar cloud, backups/restores, alertas, SMTP real e testes end-to-end autenticados. |
-| 6 | **Evolução funcional** | Completar portal do paciente, gestão de equipe, reenvio de confirmação e notificações reais. |
+| 1 | **Etapa 23 — Confiabilidade de eventos** | Implementar outbox, retry limitado, DLQ e idempotência para que notificações não sejam perdidas silenciosamente. |
+| 2 | **Etapa 24 — Observabilidade operacional** | Correlacionar traces e métricas, publicar dashboard e testar alertas de erro, latência e fila. |
+| 3 | **Etapa 25 — Testes end-to-end** | Cobrir jornadas autenticadas no browser em stack isolada da CI. |
+| 4 | **Etapas 26 e 27 — Autorização e LGPD aplicada** | Restringir acesso por recurso/ownership e implementar ciclo de vida responsável de dados sensíveis. |
+| 5 | **Etapa 28 — Cloud e IaC** | Criar ambiente didático repetível, com secrets, orçamento, backup/restore e destruição segura. |
+| 6 | **Etapas 29 a 31 — Frontend, documentação e produto** | Reforçar UX/acessibilidade, manter arquitetura ensinável e evoluir recursos de negócio por incrementos. |
 
-O detalhamento didático, exercícios e critérios de conclusão de cada frente estão no [plano de ensino completo](plano-de-ensino-completo.md).
+O detalhamento didático, exercícios e critérios de conclusão de cada frente estão no [plano de ensino completo](plano-de-ensino-completo.md) e no [roteiro de próximas evoluções](proximas-evolucoes.md).
 
 ## Registro de confirmações
 
@@ -216,16 +225,7 @@ Ao fim de cada etapa, este documento receberá:
 
 ## Próximas evoluções pós-MVP
 
-As treze etapas originais estão concluídas. Os itens abaixo não alteram esse histórico; representam a continuidade recomendada, em ordem de prioridade.
-
-| Prioridade | Evolução | Objetivo |
-|---:|---|---|
-| 1 | Qualidade e segurança | Restaurar a cobertura mínima de 70%, testar os fluxos novos de autenticação, atualizar dependências vulneráveis, adicionar rate limiting, HTTPS e secrets de produção. |
-| 2 | Resiliência assíncrona | Implementar retry de conexão, DLQ e monitoramento do worker RabbitMQ; disponibilizar reenvio de confirmação de e-mail. |
-| 3 | Deploy público | Externalizar a configuração da URL da API, publicar imagens em registry e implantar frontend, API e infraestrutura. |
-| 4 | Gestão de equipe | Criar convites e administração de médicos e recepcionistas com roles e auditoria. |
-| 5 | Portal do paciente | Expor somente os dados do paciente autenticado e permitir consultar, cancelar e reagendar consultas próprias. |
-| 6 | Notificações e produto | Integrar e-mail/SMS/WhatsApp reais, indicadores operacionais, disponibilidade médica e dashboard com dados reais. |
+As treze etapas originais estão concluídas. A continuidade técnica atual está no [roteiro de próximas evoluções](proximas-evolucoes.md); a visão de módulos, regras de negócio e critérios de aceite para o SaaS médico está no [catálogo de funcionalidades de produto](funcionalidades-produto-saas-medico.md).
 
 ## Trilha de qualidade e Platform Engineering
 
@@ -322,6 +322,17 @@ As etapas 19 a 21 aplicam os controles prioritários identificados na avaliaçã
 ## Capacidade e performance
 
 A capacidade simultânea não será declarada sem medição. A arquitetura atual, os critérios de pontuação e o plano de carga estão documentados em [docs/capacidade-e-performance.md](capacidade-e-performance.md).
+
+### Etapa 22 — Capacidade e performance
+
+**Concluída em 12/08/2026 (BRT), como benchmark de laboratório.**
+
+- Criados cenários k6 versionados para leitura autenticada de pacientes e ciclo misto de recepção (leitura, agendamento, confirmação e cancelamento).
+- O executor Docker captura resumo k6, recursos dos contêineres e permite cache frio/quente sem `FLUSHDB`; o modo frio só remove `patients:list:*`.
+- Três leituras quentes e três transições frio→quente a 25 VUs aprovaram thresholds e tiveram 0% de erro. O experimento mostrou que a primeira leitura fria não é suficiente para declarar ganho de cache pelo p95/p99 do cenário longo.
+- Três execuções do ciclo misto a 10 VUs/50 ciclos aprovaram thresholds e tiveram 0% de erro; os dados usados são sintéticos e as consultas terminam canceladas.
+- Foram registrados picos isolados de CPU no RabbitMQ, sem alarmes posteriores do broker. A investigação por métricas de processo fica para a Etapa 24, sem otimização prematura.
+- A capacidade declarada é limitada ao Docker Compose local e aos cenários medidos. Testes de 50/100 VUs, login/pagamento e qualificação semelhante à produção continuam como novas evoluções, não como alegação de capacidade geral.
 
 **Princípio de implementação:** o gate será progressivo. A cobertura total começa na meta histórica de 70% para Domain/Application; o objetivo de 80% será aplicado ao código novo quando a infraestrutura de medição por pull request estiver configurada. Isso evita testes artificiais apenas para elevar uma métrica global.
 
