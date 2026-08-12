@@ -22,21 +22,19 @@ Esta documentação explica a proteção aplicada à branch `main` do ClinicHub.
 | `CodeQL (csharp)` | SAST do backend .NET. |
 | `CodeQL (javascript-typescript)` | SAST do frontend. |
 | `OWASP ZAP baseline` | DAST da API em stack isolada. |
+| `SonarCloud quality gate` | Análise SonarCloud, cobertura importada e Quality Gate remoto. |
 
 O DAST foi validado com sucesso em execução manual antes de ser incluído nos checks obrigatórios. Como ele também é publicado no workflow de PR, cada pull request para `main` precisa concluir o scan ZAP antes do merge.
 
 ## Ligação com SonarCloud
 
-O workflow `Sonar Quality Gate` existe, mas fica ignorado até o repositório receber `SONAR_TOKEN`, `SONAR_ORGANIZATION` e `SONAR_PROJECT_KEY`. Não o torne obrigatório antes de validar a Etapa 17: um check ignorado não prova qualidade e pode bloquear merges indevidamente.
+O repositório já possui `SONAR_TOKEN` como secret e as variáveis `SONAR_ORGANIZATION` e `SONAR_PROJECT_KEY`. A primeira execução remota aprovada foi [Sonar Quality Gate #31553134108](https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31553134108), em 12/08/2026 (UTC).
 
-Depois da primeira análise remota aprovada:
+`SonarCloud quality gate` agora é um dos checks obrigatórios da `main`. O workflow espera a resposta remota (`sonar.qualitygate.wait=true`); portanto, Quality Gate vermelho encerra o job com erro e impede o merge enquanto a proteção estiver ativa.
 
-1. Ajuste o Quality Gate para código novo.
-2. Provoque uma falha controlada e confirme que o workflow reprova.
-3. Adicione `SonarCloud quality gate` aos checks obrigatórios.
-4. Revise se a política de administradores deve passar a ser aplicada sem exceção.
+No plano Free, o projeto usa a regra padrão disponível no SonarCloud. A meta específica de 70% de cobertura para Domain/Application continua protegida pelo workflow de CI. Ao migrar para um plano que permita padrões de qualidade customizados, configure regras de código novo (zero bugs/vulnerabilidades, cobertura >= 80% e duplicação < 3%) antes de substituir o gate padrão.
 
-O roteiro completo, incluindo os valores pendentes no GitHub e o checklist de conclusão, está em [configurar SonarQube Cloud gratuito](configurar-sonarcloud-gratuito.md).
+O roteiro completo, incluindo os nomes das configurações no GitHub, a rotação do token e o checklist, está em [configurar SonarQube Cloud gratuito](configurar-sonarcloud-gratuito.md).
 
 ## Fluxo de trabalho
 

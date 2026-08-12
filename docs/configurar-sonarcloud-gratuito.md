@@ -1,8 +1,8 @@
 # Configurar SonarQube Cloud gratuito
 
-Este guia conclui a parte remota da Etapa 17 do ClinicHub. Ele usa o plano **Free** do SonarQube Cloud para analisar repositórios públicos.
+Este guia registra e permite reproduzir a parte remota da Etapa 17 do ClinicHub. Ele usa o plano **Free** do SonarQube Cloud.
 
-> O ClinicHub é público. No plano Free, o SonarQube Cloud permite analisar uma quantidade ilimitada de repositórios públicos. Repositórios privados exigem um plano pago ou uma alternativa local/autogerenciada.
+> Na configuração realizada em 12/08/2026 (UTC), o plano Free custava US$ 0, incluía linhas de código ilimitadas em projetos públicos e até 50 mil linhas em projetos privados, com até 5 membros. Planos e limites podem mudar: confirme-os sempre no painel antes de adotar para trabalho profissional.
 
 ## Resultado esperado
 
@@ -18,21 +18,21 @@ O workflow só começa a analisar quando as duas variáveis existirem. Assim, n�
 
 ## Estado atual do ClinicHub
 
-Esta é a fotografia da implementação em 11/08/2026. Ela separa claramente o que já foi comprovado do que depende da sua conta externa.
+Esta é a fotografia da implementação em 12/08/2026 (UTC). Ela separa claramente o que já foi comprovado das credenciais que devem permanecer exclusivamente na sua conta externa.
 
 | Área | Estado | Evidência ou decisão |
 |---|---|---|
 | Laboratório local | Concluído | SonarQube Community Build, PostgreSQL e `dotnet-sonarscanner` 11.2.1 versionados. |
 | Análise local .NET | Concluída | Quality Gate padrão aprovado; 49,1% de cobertura geral, 0 bugs e 0% de duplicação. |
 | Achados locais | Registrados | 44 code smells, 2 vulnerabilidades e 8 security hotspots legados aguardam triagem; o gate padrão não os apaga. |
-| Workflow remoto | Versionado, aguardando configuração | `.github/workflows/sonar.yml` fica ignorado até receber as duas variáveis e o secret. |
-| `SONAR_TOKEN` | Pendente | Deve ser criado por você no SonarQube Cloud e guardado exclusivamente como Secret do GitHub. |
-| `SONAR_ORGANIZATION` | Pendente | Será obtida ao criar/importar a organização no SonarQube Cloud. |
-| `SONAR_PROJECT_KEY` | Pendente | Será obtida ao importar o repositório ClinicHub. |
-| Proteção da `main` | Ativa | PR, uma aprovação, conversas resolvidas, histórico linear e checks de CI, CodeQL e DAST são obrigatórios. |
-| Check SonarCloud obrigatório | Pendente | Só será adicionado depois da primeira análise remota aprovada. |
+| Workflow remoto | Concluído | [Execução #31553134108](https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31553134108) aprovada: build, testes, cobertura, análise e Quality Gate. |
+| `SONAR_TOKEN` | Concluído | Criado com expiração de 90 dias e guardado exclusivamente como Secret do GitHub; nunca é versionado. |
+| `SONAR_ORGANIZATION` | Concluído | Variável de repositório com a chave `eliasmatheusouza`. |
+| `SONAR_PROJECT_KEY` | Concluído | Variável de repositório com a chave `eliasmatheusouza_ClinicHub`. |
+| Proteção da `main` | Ativa | PR, uma aprovação, conversas resolvidas, histórico linear e checks de CI, CodeQL, DAST e SonarCloud são obrigatórios. |
+| Check SonarCloud obrigatório | Concluído | `SonarCloud quality gate` foi incluído na proteção da `main` depois da primeira análise aprovada. |
 
-Os valores pendentes não são arquivos ausentes: são identificadores e uma credencial que só o painel do SonarQube Cloud pode gerar para a sua conta. Eles não devem ser inventados, compartilhados ou versionados.
+Os identificadores e a credencial não são arquivos do projeto: pertencem à sua conta, não devem ser inventados, compartilhados ou versionados. Apenas os nomes das variáveis e o procedimento ficam documentados.
 
 ## 1. Criar a conta e conectar o GitHub
 
@@ -60,7 +60,7 @@ Não crie uma organização manual desconectada do GitHub: a integração vincul
 3. Gere o token e copie-o imediatamente. Ele só é exibido uma vez.
 4. Cole-o diretamente no GitHub no próximo passo. Não o salve em `.env`, código, commit, captura de tela ou chat.
 
-Para o plano Free, um Personal Access Token é o mecanismo normal. Tokens inativos por 60 dias podem ser removidos pelo SonarQube Cloud; se isso acontecer, gere outro e atualize apenas o Secret no GitHub.
+Para o plano Free, um Personal Access Token é o mecanismo normal. O token usado neste laboratório expira em 08/11/2026; antes dessa data, gere um novo e atualize apenas o Secret no GitHub. Tokens inativos também podem ser removidos pelo SonarQube Cloud.
 
 ## 4. Cadastrar secret e variáveis no GitHub
 
@@ -98,8 +98,8 @@ O primeiro comando pede o token sem exibi-lo. Nunca substitua o prompt por um to
 2. Confirme que o job **SonarCloud quality gate** deixou de ser ignorado.
 3. Abra o link para o painel do SonarQube Cloud exibido no log.
 4. Verifique cobertura, bugs, vulnerabilidades, hotspots e code smells.
-5. Em **Quality Gates**, configure a regra para código novo: zero bugs, zero vulnerabilidades, rating A de confiabilidade/segurança, cobertura mínima de 80% e duplicação menor que 3%.
-6. Faça uma alteração de teste em uma branch, abra um pull request e confirme que o check aparece no PR. Corrija ou reverta a alteração de teste depois da validação.
+5. Em **Quality Gates**, confira a regra atribuída ao projeto. No plano Free usado aqui, a regra padrão é a disponível; padrões customizados podem exigir outro plano.
+6. Faça uma alteração de teste em uma branch, abra um pull request e confirme que o check aparece no PR. Corrija ou reverta a alteração de teste depois da validação. Para uma regra customizada futura, a recomendação é código novo com zero bugs/vulnerabilidades, cobertura mínima de 80% e duplicação menor que 3%.
 
 ## 6. Tornar o gate obrigatório
 
@@ -111,15 +111,14 @@ A `main` já possui proteção para CI, CodeQL e DAST. O SonarCloud é acrescent
 
 Use esta lista quando for executar a configuração:
 
-- [ ] A conta/organização SonarQube Cloud foi criada no plano Free para o repositório público.
-- [ ] `eliasmatheusouza/ClinicHub` foi importado e aparece como projeto no painel.
-- [ ] O token foi criado, copiado uma única vez e salvo como `SONAR_TOKEN` no GitHub.
-- [ ] `SONAR_ORGANIZATION` e `SONAR_PROJECT_KEY` foram criadas como variáveis de repositório.
-- [ ] O workflow **Sonar Quality Gate** foi executado em `main` sem ser ignorado.
-- [ ] O painel recebeu cobertura OpenCover e exibiu o resultado do Quality Gate.
-- [ ] Uma alteração de teste em pull request confirmou que o check aparece e falha quando o gate reprova.
-- [ ] `SonarCloud quality gate` foi incluído nos checks obrigatórios da proteção da `main`.
-- [ ] As Etapas 17 e 18 foram atualizadas para concluídas no plano de execução.
+- [x] A conta/organização SonarQube Cloud foi criada no plano Free e o projeto foi importado.
+- [x] O token foi criado, copiado uma única vez e salvo como `SONAR_TOKEN` no GitHub.
+- [x] `SONAR_ORGANIZATION` e `SONAR_PROJECT_KEY` foram criadas como variáveis de repositório.
+- [x] O workflow **Sonar Quality Gate** foi executado em `main` sem ser ignorado e foi aprovado.
+- [x] O painel recebeu cobertura OpenCover e exibiu o resultado do Quality Gate.
+- [x] `SonarCloud quality gate` foi incluído nos checks obrigatórios da proteção da `main`.
+- [x] As Etapas 17 e 18 foram atualizadas para concluídas no plano de execução.
+- [ ] Opcional para aprendizado: uma alteração controlada em pull request confirma visualmente a reprovação de um gate vermelho. Não a faça diretamente em `main`.
 
 ## Diagnóstico rápido
 

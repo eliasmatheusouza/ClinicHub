@@ -41,7 +41,7 @@ Não use `down -v` se quiser preservar histórico e configurações locais.
 4. **Coverage:** a cobertura OpenCover dos testes .NET, gerada pelo coletor Coverlet. Ela complementa, mas não substitui, o gate atual de 70% em Domain/Application.
 5. **New Code:** a área mais importante para evolução. A meta é não introduzir novos bugs/vulnerabilidades, manter duplicação baixa e exigir cobertura adequada no código alterado.
 
-Para aprendizado, comece com o Quality Gate padrão e depois crie um gate próprio com estes critérios para **código novo**: zero bugs, zero vulnerabilidades, rating A de confiabilidade e segurança, cobertura mínima de 80% e duplicação menor que 3%. Não altere o gate global para "aprovar" dívida legada: trate essa dívida em backlog separado.
+Para aprendizado, comece com o Quality Gate padrão. Quando o plano permitir padrões customizados, crie um gate para **código novo** com estes critérios: zero bugs, zero vulnerabilidades, rating A de confiabilidade e segurança, cobertura mínima de 80% e duplicação menor que 3%. Não altere o gate global para "aprovar" dívida legada: trate essa dívida em backlog separado.
 
 ## 3. Linha de base local validada
 
@@ -51,15 +51,15 @@ O mesmo diagnóstico revelou 44 code smells, 2 vulnerabilidades e 8 security hot
 
 ## 4. Habilitar SonarQube Cloud no GitHub Actions
 
-O workflow [sonar.yml](../.github/workflows/sonar.yml) está versionado e permanece **ignorado** até as configurações abaixo existirem. Isso evita uma falsa aprovação sem análise.
+O workflow [sonar.yml](../.github/workflows/sonar.yml) está versionado. Antes da configuração, ele permanece **ignorado** até as variáveis existirem, evitando uma falsa aprovação sem análise. Depois da configuração, a primeira execução remota [#31553134108](https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31553134108) foi aprovada em 1m59s.
 
-1. Crie uma organização e importe o repositório público no SonarQube Cloud usando a integração com GitHub.
-2. Crie um token com permissão de executar análise.
-3. No GitHub, cadastre o secret `SONAR_TOKEN`.
-4. Cadastre as variáveis de repositório `SONAR_ORGANIZATION` e `SONAR_PROJECT_KEY` com os valores exibidos pelo SonarQube Cloud.
-5. Faça um `workflow_dispatch` de **Sonar Quality Gate** e revise o primeiro painel.
-6. Ajuste o Quality Gate para código novo e confirme que o job falha quando ele está vermelho.
-7. Na etapa 18, torne esse check obrigatório na proteção da `main`.
+1. Crie uma organização e importe o repositório no SonarQube Cloud usando a integração com GitHub.
+2. Crie um token com permissão de executar análise e guarde-o como `SONAR_TOKEN` no GitHub.
+3. Cadastre as variáveis de repositório `SONAR_ORGANIZATION` e `SONAR_PROJECT_KEY` com os valores exibidos pelo SonarQube Cloud.
+4. Faça um `workflow_dispatch` de **Sonar Quality Gate** e revise o painel.
+5. Torne `SonarCloud quality gate` obrigatório na proteção da `main` somente depois de uma análise aprovada.
+
+No ClinicHub, os cinco passos já foram concluídos. O plano Free mantém o Quality Gate padrão; a CI complementa-o com o gate próprio de 70% de cobertura em Domain/Application.
 
 O scanner usa `sonar.qualitygate.wait=true`; portanto, o job retorna erro quando o Quality Gate remoto reprova a análise. SonarQube Cloud também publica o status do gate como check no pull request.
 
