@@ -23,7 +23,7 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 15 | Gate de cobertura | ✅ Concluída | Script de quality gate integrado à CI; falha abaixo de 70% nas camadas Domain e Application. |
 | 16 | Relatórios e auditorias de CI | ✅ Concluída | Resultados TRX publicados, auditorias .NET/NPM validadas, CodeQL aprovado e Dependabot sem alertas abertos. |
 | 17 | Análise estática e Quality Gate | 🟨 Em andamento | Laboratório SonarQube, scanner e workflow SonarCloud versionados; falta configurar organização/token e validar o gate remoto. |
-| 18 | Governança de pull requests | ⬜ Pendente | Proteger `main`, exigir checks aprovados e impedir merge fora do fluxo de revisão. |
+| 18 | Governança de pull requests | 🟨 Em andamento | Proteção da `main`, revisão e checks de CI/CodeQL/DAST; incluir SonarCloud após concluir a Etapa 17. |
 | 19 | Defesa da API | ✅ Concluída | Rate limiting nas rotas de autenticação, headers HTTP, HTTPS/HSTS em Production e validação de configuração segura. |
 | 20 | Dados, auditoria e ownership | ✅ Concluída | Audit trail, policies, ownership, minimização/masking e plano de criptografia documentado e validado. |
 | 21 | Hardening de deploy | ✅ Concluída | Imagens não-root, manifesto de produção isolado, secrets externos e DAST remoto com artefato revisado e sem alertas de risco. |
@@ -258,6 +258,15 @@ As etapas 14 a 18 aplicam ao ClinicHub os conceitos de AAA, FIRST, isolamento po
 - A integração gera Cobertura e OpenCover a partir do Coverlet. O SonarQube importa OpenCover; a CI continua consumindo Cobertura. Os relatórios de cada execução ficam isolados em `artifacts/sonarqube-tests/`.
 - O scanner desta etapa limita-se à solução .NET para não analisar dependências transitivas do frontend. A análise e cobertura Angular ficam como evolução condicionada a um relatório LCOV estável.
 - Para concluir a etapa falta configurar a organização/projeto e o secret `SONAR_TOKEN` no SonarQube Cloud, executar o workflow remoto e confirmar o bloqueio do job quando o Quality Gate de código novo reprovar.
+
+### Etapa 18 — Governança de pull requests
+
+**Iniciada em 11/08/2026.**
+
+- A `main` passa a exigir pull request, uma aprovação, conversas resolvidas e histórico linear. Administradores continuam podendo agir em emergência, decisão consciente para um repositório pessoal de aprendizado.
+- Os checks obrigatórios iniciais são Backend (.NET 8), Frontend (Angular), Dependency audit, Docker images e CodeQL para C# e JavaScript/TypeScript.
+- O DAST baseline passa a executar também em pull requests para poder ser exigido como check após a primeira execução bem-sucedida.
+- O check SonarCloud **não** será exigido até a Etapa 17 receber organização, project key e `SONAR_TOKEN`; exigir um check ainda ignorado criaria bloqueios falsos.
 
 ## Trilha de segurança da aplicação
 
