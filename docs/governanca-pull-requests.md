@@ -63,4 +63,6 @@ Antes de aprovar qualquer Dependabot PR, confirme:
 4. não existe outra PR concorrente que atualize o mesmo pacote ou uma família incompatível;
 5. para uma atualização major, as notas de migração foram lidas e o fluxo afetado foi exercitado.
 
+Para PRs criadas pelo Dependabot, mantenha `SONAR_TOKEN` também em **Dependabot secrets**. O bot não recebe o Actions secret comum, portanto esse segredo específico é necessário para que o check SonarCloud obrigatório seja executado.
+
 Se uma PR estiver vermelha, não aprove para "testar depois": leia o log, corrija em uma branch de manutenção ou feche-a e substitua-a por uma atualização coordenada. Assim o Dependabot reduz trabalho repetitivo sem transferir a responsabilidade técnica para o robô.

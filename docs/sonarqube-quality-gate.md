@@ -85,6 +85,12 @@ No ClinicHub, os cinco passos já foram concluídos. O plano Free mantém o Qual
 
 O scanner usa `sonar.qualitygate.wait=true`; portanto, o job retorna erro quando o Quality Gate remoto reprova a análise. SonarQube Cloud também publica o status do gate como check no pull request.
 
+### PRs do Dependabot e o token
+
+Workflows disparados por uma pull request do Dependabot não recebem os **Actions secrets** do repositório; recebem somente **Dependabot secrets**. Como `SonarCloud quality gate` é obrigatório na `main`, antes de mesclar uma atualização do bot crie também um Dependabot secret de repositório chamado `SONAR_TOKEN`, com o mesmo valor do Actions secret, em **Settings > Secrets and variables > Dependabot**. Ao rotacionar o token, atualize os dois lugares.
+
+Não contorne essa limitação trocando o workflow para `pull_request_target` apenas para expor credenciais: PRs são código não confiável e a mudança ampliaria a superfície de ataque. Depois de cadastrar o segredo, mande o Dependabot rebasear a PR e confirme o check verde normalmente.
+
 Para configurar a conta gratuita, os tokens e as variáveis do GitHub passo a passo, consulte [configurar SonarQube Cloud gratuito](configurar-sonarcloud-gratuito.md).
 
 O documento de configuração também mantém a fotografia do que já foi validado localmente e do que ainda depende do SonarQube Cloud.
