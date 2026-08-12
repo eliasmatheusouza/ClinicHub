@@ -48,7 +48,7 @@ jobs:
           fail-on-error: "false"
 
       - name: Publish coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: backend-coverage
@@ -95,7 +95,7 @@ jobs:
         run: npm audit --json > npm-audit.json || true
 
       - name: Publish frontend audit artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: frontend-audit
