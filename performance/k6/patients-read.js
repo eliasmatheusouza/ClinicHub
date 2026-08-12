@@ -5,6 +5,7 @@ const baseUrl = (__ENV.BASE_URL || 'http://host.docker.internal:8082').replace(/
 const profile = __ENV.PERF_PROFILE || 'smoke';
 const userEmail = __ENV.PERF_USER_EMAIL;
 const userPassword = __ENV.PERF_USER_PASSWORD;
+const accessToken = __ENV.PERF_ACCESS_TOKEN;
 const cacheState = __ENV.PERF_CACHE_STATE || 'warm';
 const thinkTimeSeconds = Number(__ENV.PERF_THINK_TIME_SECONDS || '1');
 
@@ -46,6 +47,10 @@ export const options = {
 };
 
 export function setup() {
+  if (accessToken) {
+    return { accessToken };
+  }
+
   const response = http.post(
     `${baseUrl}/api/auth/login`,
     JSON.stringify({ email: userEmail, password: userPassword }),

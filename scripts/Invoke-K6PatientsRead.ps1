@@ -1,5 +1,7 @@
 [CmdletBinding()]
 param(
+    [ValidateSet('patients-read', 'appointments-lifecycle')]
+    [string] $Scenario = 'patients-read',
     [ValidateSet('smoke', 'baseline')]
     [string] $Profile = 'smoke',
     [string] $BaseUrl = 'http://host.docker.internal:8082',
@@ -7,6 +9,7 @@ param(
     [string] $UserEmail,
     [Parameter(Mandatory)]
     [string] $UserPassword,
+    [string] $AccessToken,
     [ValidateSet('warm', 'cold')]
     [string] $CacheState = 'warm',
     [string] $RedisContainerName = 'clinichub-redis-1',
@@ -32,11 +35,11 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
 }
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$scenarioPath = Join-Path $projectRoot 'performance/k6/patients-read.js'
+$scenarioPath = Join-Path $projectRoot "performance/k6/$Scenario.js"
 $artifactsPath = Join-Path $projectRoot 'artifacts/performance'
 $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$summaryFile = "patients-read-$Profile-$timestamp.json"
-$resourceFile = "patients-read-$Profile-$timestamp-resources.jsonl"
+$summaryFile = "$Scenario-$Profile-$timestamp.json"
+$resourceFile = "$Scenario-$Profile-$timestamp-resources.jsonl"
 
 if (-not (Test-Path -LiteralPath $scenarioPath)) {
     throw "Cenário k6 não encontrado: $scenarioPath"
@@ -67,15 +70,19 @@ function Reset-PatientListCache {
 
 function Warm-PatientListCache {
     $hostBaseUrl = $BaseUrl -replace 'host\.docker\.internal', 'localhost'
-    $loginPayload = @{ email = $UserEmail; password = $UserPassword } | ConvertTo-Json -Compress
-    $login = Invoke-RestMethod -Uri "$hostBaseUrl/api/auth/login" -Method Post -ContentType 'application/json' -Body $loginPayload
+    $token = $AccessToken
+    if ([string]::IsNullOrWhiteSpace($token)) {
+        $loginPayload = @{ email = $UserEmail; password = $UserPassword } | ConvertTo-Json -Compress
+        $login = Invoke-RestMethod -Uri "$hostBaseUrl/api/auth/login" -Method Post -ContentType 'application/json' -Body $loginPayload
+        $token = $login.accessToken
+    }
 
-    if ([string]::IsNullOrWhiteSpace($login.accessToken)) {
-        throw 'Não foi possível preparar cache quente: login não retornou access token.'
+    if ([string]::IsNullOrWhiteSpace($token)) {
+        throw 'Não foi possível preparar cache quente: nenhum access token disponível.'
     }
 
     $response = Invoke-WebRequest -Uri "$hostBaseUrl/api/patients?page=1&pageSize=20" `
-        -Headers @{ Authorization = "Bearer $($login.accessToken)" } `
+        -Headers @{ Authorization = "Bearer $token" } `
         -UseBasicParsing
 
     if ($response.StatusCode -ne 200) {
@@ -85,11 +92,13 @@ function Warm-PatientListCache {
     Write-Host 'Cache quente preparado: listagem autenticada de pacientes executada antes do k6.'
 }
 
-if ($CacheState -eq 'cold') {
-    Reset-PatientListCache
-}
-else {
-    Warm-PatientListCache
+if ($Scenario -eq 'patients-read') {
+    if ($CacheState -eq 'cold') {
+        Reset-PatientListCache
+    }
+    else {
+        Warm-PatientListCache
+    }
 }
 
 $resourceJob = $null
@@ -153,6 +162,7 @@ try {
             -e "PERF_PROFILE=$Profile" `
             -e "PERF_USER_EMAIL=$UserEmail" `
             -e "PERF_USER_PASSWORD=$UserPassword" `
+            -e "PERF_ACCESS_TOKEN=$AccessToken" `
             -e "PERF_CACHE_STATE=$CacheState" `
             -e "PERF_THINK_TIME_SECONDS=$ThinkTimeSeconds" `
             --summary-export="/results/$summaryFile" -

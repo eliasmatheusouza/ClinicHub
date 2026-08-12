@@ -36,7 +36,7 @@ As notas abaixo são uma avaliação arquitetural para aprendizado e não uma ce
 **Nota como projeto de portfólio e aprendizado: 8/10.**  
 **Nota como sistema pronto para dados médicos em produção: 5,5/10.**
 
-## Etapa 22 em andamento: teste de carga com k6
+## Etapa 22 concluída: benchmark local com k6
 
 O repositório agora possui o primeiro cenário executável em [performance/k6/patients-read.js](../performance/k6/patients-read.js). Ele simula uma recepção autenticada consultando a primeira página de pacientes — uma rota adequada para começar porque atravessa autenticação, API, cache Redis e banco, mas não cria registros artificiais, não altera dados clínicos e não sobrecarrega o rate limit de login.
 
@@ -99,6 +99,8 @@ O script usa a imagem oficial `grafana/k6` no Docker; não instala k6 na máquin
 
 Os resumos JSON são criados em `artifacts/performance/`, diretório ignorado pelo Git. Com `-CaptureResources`, o executor também coleta uma amostra a cada dois segundos de CPU, memória, I/O e PIDs dos contêineres da API, SQL Server, Redis, RabbitMQ e worker, em um arquivo `*.jsonl` no mesmo diretório. O intervalo e os contêineres podem ser ajustados com `-ResourceSampleIntervalSeconds` e `-ResourceContainerNames`.
 
+Para cenários que não avaliam autenticação, `-AccessToken` aceita um JWT efêmero somente em memória e evita criar logins adicionais sujeitos ao rate limit. O token não é salvo nos artefatos nem exibido pelo script. Quando esse parâmetro não é informado, o cenário continua autenticando no `setup`. A carga de login deve ser medida separadamente, respeitando intencionalmente o rate limit.
+
 Em Docker Desktop no Windows, `host.docker.internal` permite que o contêiner do k6 alcance a API publicada em `localhost:8082`. Para outro alvo, informe `-BaseUrl 'http://host.docker.internal:porta'` ou a URL do ambiente autorizado.
 
 ### Como ler o resultado
@@ -109,11 +111,11 @@ Em Docker Desktop no Windows, `host.docker.internal` permite que o contêiner do
 4. Repita o mesmo perfil ao menos três vezes. Use mediana ou intervalo dos resultados, pois um único experimento é sujeito a aquecimento de cache e ruído da máquina.
 5. Só aumente a carga após o nível anterior cumprir os thresholds. Pare ao primeiro limite violado e investigue o gargalo antes de prosseguir.
 
-### Evidência local: três repetições da linha de base
+### Evidência local: leitura autenticada
 
-Em **11/08/2026 (BRT)**, o perfil `baseline` foi executado três vezes com a API pronta em Docker Compose e todos os thresholds aprovados. Cada experimento fez rampa de 0 a 25 VUs em 60 segundos, sustentou 25 VUs por 60 segundos e reduziu a carga nos 30 segundos finais.
+Em **11 e 12/08/2026 (BRT)**, o perfil `baseline` foi executado em Docker Compose com todos os thresholds aprovados. Cada experimento fez rampa de 0 a 25 VUs em 60 segundos, sustentou 25 VUs por 60 segundos e reduziu a carga nos 30 segundos finais.
 
-| Repetição | Requisições | Throughput | Erros | p95 geral | p99 geral |
+| Repetição quente inicial | Requisições | Throughput | Erros | p95 geral | p99 geral |
 |---:|---:|---:|---:|---:|---:|
 | 1 | 2.551 | 16,92 req/s | 0,00% | 4,49 ms | 6,01 ms |
 | 2 | 2.552 | 16,93 req/s | 0,00% | 4,16 ms | 6,97 ms |
@@ -136,26 +138,56 @@ O host de laboratório tinha AMD Ryzen 7 5700X (8 núcleos/16 processadores lóg
 
 Há uma capacidade **medida somente para este laboratório**: o cenário de listagem autenticada de pacientes sustentou 25 VUs por um minuto, nas três repetições, com p95 mediano de 4,49 ms e 0% de erros. Isso não é uma capacidade geral do produto: a máquina também mantinha contêineres não relacionados, não houve cache frio, escrita concorrente, proxy, réplicas ou rede de produção.
 
-### Comparação inicial: cache frio e cache quente
+### Cache frio e quente: três repetições por condição
 
-Depois de automatizar os modos de cache, uma baseline de cada foi executada a 25 VUs, com coleta de recursos. Ambas tiveram 0% de erro e 100% dos checks aprovados.
+Após automatizar os modos de cache, cada condição foi executada três vezes a 25 VUs, com coleta de recursos. Todas tiveram 0% de erro e 100% dos checks aprovados.
 
-| Estado de cache | Requisições | Throughput | p95 geral | p99 geral | p95 busca |
-|---|---:|---:|---:|---:|---:|
-| Frio (transição para quente) | 2.551 | 16,90 req/s | 5,95 ms | 22,69 ms | 5,91 ms |
-| Quente (pré-aquecido) | 2.552 | 16,93 req/s | 4,20 ms | 5,11 ms | 4,20 ms |
+| Estado de cache | Throughput mediano | p95 mediano | p99 mediano | Intervalo de p99 |
+|---|---:|---:|---:|---:|
+| Frio (transição para quente) | 16,92 req/s | 4,81 ms | 6,84 ms | 6,66–22,70 ms |
+| Quente (pré-aquecido) | 16,93 req/s | 4,89 ms | 6,60 ms | 5,11–7,95 ms |
 
-Essa diferença é coerente com o custo da primeira consulta ao SQL Server e do preenchimento de Redis. Ainda assim, há **somente uma execução por modo**: ela é uma comparação inicial, não uma mediana nem uma promessa de ganho. Para concluir esse experimento, repetir cada modo três vezes no mesmo ambiente e comparar mediana e intervalo. O modo frio remove exclusivamente `patients:list:*`; depois da primeira leitura, a própria carga aquece a chave, por isso ele não representa uma carga permanentemente sem cache.
+O modo frio remove exclusivamente `patients:list:*`; depois da primeira leitura, a própria carga preenche a chave. Portanto, ele mede a transição frio→quente, e não uma carga em que cada requisição é um cache miss. A amostra fria inicial teve p99 de 22,70 ms, mas as outras duas ficaram em 6,84 ms e 6,66 ms. As medianas de frio e quente são próximas: este experimento **não demonstra ganho confiável de Redis para esse endpoint nesse nível de carga**. Para medir o custo de cache miss, a evolução deve instrumentar hit/miss e SQL ou usar requisições com chaves distintas; não se deve concluir a partir de uma única primeira consulta.
+
+### Cenário misto de recepção: leitura e escrita
+
+O cenário `appointments-lifecycle` foi executado três vezes com 10 VUs e 50 ciclos por execução. Cada ciclo consulta pacientes, agenda uma consulta futura em slot único, confirma e cancela a consulta. Ele cria um paciente sintético identificado por e-mail `performance-<uuid>@example.test`; as consultas permanecem canceladas porque a API não oferece exclusão física. O cenário usa JWT efêmero em memória para isolar agenda do rate limit de login — esse token não é persistido nem registrado em artefatos.
+
+| Indicador | Mediana das três execuções |
+|---|---:|
+| Ciclos completos | 50 por execução |
+| Usuários virtuais | 10 |
+| Throughput HTTP | 12,65 req/s |
+| Erros HTTP / checks falhos | 0,00% / 0 |
+| Latência geral p95 / p99 | 76,87 ms / 86,27 ms |
+| Agendar consulta p95 | 78,36 ms |
+| Confirmar consulta p95 | 75,81 ms |
+| Cancelar consulta p95 | 66,01 ms |
+
+Na primeira tentativa desse cenário, a criação de paciente falhou por conter números no nome: a regra de domínio foi respeitada e o dado sintético foi corrigido para manter a unicidade somente no e-mail. Em outra tentativa, o login retornou HTTP 429 por causa do rate limit de 5 tentativas por minuto; isso valida a defesa da API e motivou o uso do token efêmero para testes que não medem autenticação.
+
+Nas três execuções mistas, a telemetria registrou picos de 29,62% de CPU na API e 13,77% no SQL Server. RabbitMQ teve mediana de 1,21% e pico de 309,72% de CPU, enquanto o worker teve pico de 11,48%. Não houve alarmes do broker após a carga; como o pico é breve e `docker stats` no Docker Desktop não é profiling de processo, ele fica registrado como observação a investigar com métricas OpenTelemetry/Prometheus da Etapa 24, não como gargalo comprovado.
 
 > Observação de reprodutibilidade: ao reutilizar um volume SQL Server local, a API pode iniciar antes de a recuperação do banco terminar. Antes de qualquer carga, aguarde `GET /health/ready` ficar saudável; se a API tiver terminado durante a recuperação, reinicie apenas a aplicação depois da prontidão do banco. Esse comportamento deve ser revalidado em ambiente limpo antes de tratá-lo como problema de inicialização.
 
-### Próximos cenários mínimos
+### Cenários executados e evolução futura
 
-1. Login e renovação de sessão, com política de rate limiting considerada separadamente.
-2. Listagem paginada e filtrada de pacientes, com cache frio e quente.
-3. Criação, confirmação e reagendamento de consulta.
-4. Registro de pagamento e consulta de relatório financeiro.
-5. Carga mista, próxima ao comportamento real de uma recepção.
+1. ✅ Listagem paginada de pacientes, com transição de cache frio e cache quente.
+2. ✅ Carga mista de recepção: listagem, agendamento, confirmação e cancelamento com dados sintéticos.
+3. ⬜ Login e renovação de sessão, avaliado isoladamente com a política de rate limiting.
+4. ⬜ Reagendamento, pagamento e relatório financeiro.
+5. ⬜ Perfil de produção em ambiente isolado, com proxy, rede e limites de recursos representativos.
+
+O cenário `appointments-lifecycle` cobre os itens 3 e 5 com dados sintéticos: em cada iteração ele consulta pacientes, agenda uma consulta em horário futuro único, confirma e cancela. Cada execução cria um paciente identificável por `performance-<uuid>@example.test` e deixa as consultas canceladas, pois a API não possui exclusão física de consulta. O volume é limitado a 50 ciclos no perfil `baseline` para não transformar o laboratório em massa de dados de negócio.
+
+```powershell
+./scripts/Invoke-K6PatientsRead.ps1 `
+  -Scenario appointments-lifecycle `
+  -Profile baseline `
+  -UserEmail 'admin@clinichub.local' `
+  -UserPassword 'Admin123!' `
+  -CaptureResources
+```
 
 ### Método de progressão e coleta
 
@@ -174,17 +206,24 @@ Use `-CaptureResources` no executor para gerar amostras contínuas. Cada linha d
 
 O protocolo didático completo, os cenários de escrita/mistura e o checklist de conclusão estão em [Próximas Evoluções](proximas-evolucoes.md#etapa-22--capacidade-e-performance).
 
-### Critério de capacidade declarada
+### Capacidade declarada para o laboratório
 
-Uma capacidade só poderá ser documentada no formato:
+O ClinicHub possui somente as seguintes capacidades **medidas em laboratório local**:
+
+> “No Docker Compose local descrito neste documento, a listagem autenticada de pacientes sustentou **25 VUs por 60 segundos**, após rampa, com p95 mediano de **4,89 ms** no cache quente e **4,81 ms** na transição frio→quente; erro HTTP de **0%**.”
+
+> “No mesmo laboratório, o ciclo misto de recepção sustentou **10 VUs e 50 ciclos** de listagem, agendamento, confirmação e cancelamento, com p95 geral mediano de **76,87 ms** e erro HTTP de **0%**.”
+
+O formato obrigatório de qualquer capacidade futura permanece:
 
 > “Suporta **N usuários virtuais no cenário X**, com p95 menor que **Y ms**, taxa de erro menor que **Z%**, em ambiente com configuração **W**.”
 
 Sem cenário, ambiente e métricas, “suporta N usuários” é apenas uma estimativa sem valor técnico.
 
-## O que esta etapa ainda não prova
+## Limites honestos deste benchmark
 
-- O cenário atual é somente leitura autenticada; ele não mede criação de consulta, pagamento, escrita concorrente ou processamento assíncrono.
-- A leitura quente possui três repetições e a comparação frio/quente possui apenas uma execução por modo; ainda faltam repetições estatísticas de cache, escrita concorrente e carga mista.
-- Docker Compose local não representa réplicas, proxy, banco gerenciado, limites de recursos ou rede de produção.
+- O cenário misto gera escrita concorrente limitada, mas não representa uma distribuição real de usuários, clínicas, especialidades, dados ou agendas.
+- Login/refresh, pagamentos, relatórios, reagendamento e falhas de dependência ainda não receberam carga dedicada.
+- Docker Compose local não representa réplicas, proxy, banco gerenciado, limites de recursos, rede de produção ou isolamento completo da máquina.
+- Os resultados não autorizam afirmar suporte a 50/100 VUs nem uma capacidade simultânea geral; esses níveis devem ser medidos em ambiente representativo.
 - O teste não deve rodar contra produção sem janela autorizada, massa de dados isolada, limites explícitos e plano de reversão.

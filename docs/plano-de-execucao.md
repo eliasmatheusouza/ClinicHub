@@ -29,7 +29,7 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 19 | Defesa da API | ✅ Concluída | Rate limiting nas rotas de autenticação, headers HTTP, HTTPS/HSTS em Production e validação de configuração segura. |
 | 20 | Dados, auditoria e ownership | ✅ Concluída | Audit trail, policies, ownership, minimização/masking e plano de criptografia documentado e validado. |
 | 21 | Hardening de deploy | ✅ Concluída | Imagens não-root, manifesto de produção isolado, secrets externos e DAST remoto com artefato revisado e sem alertas de risco. |
-| 22 | Capacidade e performance | 🟨 Em andamento | SLOs, três baselines quentes a 25 VUs e comparação inicial frio/quente concluídos; telemetria e modos de cache automatizados. Faltam repetição estatística por cache, escrita/carga mista, investigação de picos observados e ambiente representativo. |
+| 22 | Capacidade e performance | ✅ Concluída | Benchmark local reproduzível: três repetições de leitura frio/quente a 25 VUs, telemetria de contêineres e três execuções mistas de agenda a 10 VUs/50 ciclos. Capacidade declarada apenas para o laboratório; qualificação de produção ficou documentada como evolução futura. |
 | 23 | Confiabilidade de eventos | ⬜ Pendente | Outbox, publicação confiável, retry limitado, DLQ, idempotência e testes de falha para notificações. |
 | 24 | Observabilidade operacional | ⬜ Pendente | OpenTelemetry, traces correlacionados, métricas, dashboards e alertas de erro, latência e fila. |
 | 25 | Testes end-to-end | ⬜ Pendente | Suite Playwright em stack isolada da CI para jornadas críticas autenticadas. |
@@ -46,13 +46,12 @@ A continuidade foi atualizada após as etapas de Quality Gate, governança de pu
 
 | Prioridade | Trabalho | Resultado esperado |
 |---:|---|---|
-| 1 | **Etapa 22 — Capacidade e performance** | Repetir e ampliar cenários k6; medir p95/p99, erros, throughput, banco, cache, fila e recursos durante a carga antes de declarar capacidade. |
-| 2 | **Etapa 23 — Confiabilidade de eventos** | Implementar outbox, retry limitado, DLQ e idempotência para que notificações não sejam perdidas silenciosamente. |
-| 3 | **Etapa 24 — Observabilidade operacional** | Correlacionar traces e métricas, publicar dashboard e testar alertas de erro, latência e fila. |
-| 4 | **Etapa 25 — Testes end-to-end** | Cobrir jornadas autenticadas no browser em stack isolada da CI. |
-| 5 | **Etapas 26 e 27 — Autorização e LGPD aplicada** | Restringir acesso por recurso/ownership e implementar ciclo de vida responsável de dados sensíveis. |
-| 6 | **Etapa 28 — Cloud e IaC** | Criar ambiente didático repetível, com secrets, orçamento, backup/restore e destruição segura. |
-| 7 | **Etapas 29 a 31 — Frontend, documentação e produto** | Reforçar UX/acessibilidade, manter arquitetura ensinável e evoluir recursos de negócio por incrementos. |
+| 1 | **Etapa 23 — Confiabilidade de eventos** | Implementar outbox, retry limitado, DLQ e idempotência para que notificações não sejam perdidas silenciosamente. |
+| 2 | **Etapa 24 — Observabilidade operacional** | Correlacionar traces e métricas, publicar dashboard e testar alertas de erro, latência e fila. |
+| 3 | **Etapa 25 — Testes end-to-end** | Cobrir jornadas autenticadas no browser em stack isolada da CI. |
+| 4 | **Etapas 26 e 27 — Autorização e LGPD aplicada** | Restringir acesso por recurso/ownership e implementar ciclo de vida responsável de dados sensíveis. |
+| 5 | **Etapa 28 — Cloud e IaC** | Criar ambiente didático repetível, com secrets, orçamento, backup/restore e destruição segura. |
+| 6 | **Etapas 29 a 31 — Frontend, documentação e produto** | Reforçar UX/acessibilidade, manter arquitetura ensinável e evoluir recursos de negócio por incrementos. |
 
 O detalhamento didático, exercícios e critérios de conclusão de cada frente estão no [plano de ensino completo](plano-de-ensino-completo.md) e no [roteiro de próximas evoluções](proximas-evolucoes.md).
 
@@ -323,6 +322,17 @@ As etapas 19 a 21 aplicam os controles prioritários identificados na avaliaçã
 ## Capacidade e performance
 
 A capacidade simultânea não será declarada sem medição. A arquitetura atual, os critérios de pontuação e o plano de carga estão documentados em [docs/capacidade-e-performance.md](capacidade-e-performance.md).
+
+### Etapa 22 — Capacidade e performance
+
+**Concluída em 12/08/2026 (BRT), como benchmark de laboratório.**
+
+- Criados cenários k6 versionados para leitura autenticada de pacientes e ciclo misto de recepção (leitura, agendamento, confirmação e cancelamento).
+- O executor Docker captura resumo k6, recursos dos contêineres e permite cache frio/quente sem `FLUSHDB`; o modo frio só remove `patients:list:*`.
+- Três leituras quentes e três transições frio→quente a 25 VUs aprovaram thresholds e tiveram 0% de erro. O experimento mostrou que a primeira leitura fria não é suficiente para declarar ganho de cache pelo p95/p99 do cenário longo.
+- Três execuções do ciclo misto a 10 VUs/50 ciclos aprovaram thresholds e tiveram 0% de erro; os dados usados são sintéticos e as consultas terminam canceladas.
+- Foram registrados picos isolados de CPU no RabbitMQ, sem alarmes posteriores do broker. A investigação por métricas de processo fica para a Etapa 24, sem otimização prematura.
+- A capacidade declarada é limitada ao Docker Compose local e aos cenários medidos. Testes de 50/100 VUs, login/pagamento e qualificação semelhante à produção continuam como novas evoluções, não como alegação de capacidade geral.
 
 **Princípio de implementação:** o gate será progressivo. A cobertura total começa na meta histórica de 70% para Domain/Application; o objetivo de 80% será aplicado ao código novo quando a infraestrutura de medição por pull request estiver configurada. Isso evita testes artificiais apenas para elevar uma métrica global.
 

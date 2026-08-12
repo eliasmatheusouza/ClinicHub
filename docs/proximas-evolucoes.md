@@ -14,7 +14,7 @@ Este documento transforma a avaliação arquitetural do ClinicHub em um roteiro 
 
 | Etapa | Estado | Evolução | Por que agora | Evidência para concluir |
 |---:|---|---|---|---|
-| 22 | 🟨 Em andamento | Capacidade e performance | A leitura quente possui três baselines e há uma primeira comparação frio/quente a 25 VUs; faltam repetições e cenários representativos antes de qualquer afirmação ampla. | Repetir cache frio/quente, escrita, carga mista, investigação de picos e capacidade contextualizada para ambiente semelhante ao alvo. |
+| 22 | ✅ Concluída | Benchmark local de capacidade e performance | Leitura frio/quente e carga mista foram medidas com repetições, thresholds e telemetria. | Resultados, limites e capacidade limitada ao laboratório registrados em `capacidade-e-performance.md`. |
 | 23 | ⬜ Planejada | Confiabilidade de eventos | Notificações não podem ser perdidas se banco e broker falharem em momentos diferentes. | Outbox, publicação confiável, retry limitado, DLQ, idempotência e testes de falha. |
 | 24 | ⬜ Planejada | Observabilidade operacional | Logs isolados não explicam uma jornada completa nem permitem alertar antes de um incidente. | Traces, métricas, dashboard e alertas de latência, erro e fila. |
 | 25 | ⬜ Planejada | Testes end-to-end | API e frontend podem estar corretos isoladamente e falhar na jornada do usuário. | Suite Playwright cobrindo fluxos críticos autenticados na CI. |
@@ -53,12 +53,14 @@ O objetivo não é alcançar um número grande de usuários virtuais. É descobr
 
 ### Critério de conclusão da Etapa 22
 
-- [ ] Três repetições do cenário de leitura para cada nível testado, com resultados comparados.
-- [ ] Cenários de escrita e carga mista executados com massa sintética.
-- [ ] CPU, memória, banco, cache e fila coletados durante a carga.
-- [ ] Gargalos e decisões de otimização registrados em ADR quando relevantes.
-- [ ] Capacidade declarada apenas no formato “N VUs no cenário X, em ambiente W, com p95 Y e erro Z”.
-- [ ] Testes executados somente em ambiente autorizado, nunca contra produção sem janela e plano de reversão.
+- [x] Três repetições do cenário de leitura para cada condição de cache testada, com resultados comparados.
+- [x] Cenário de escrita e carga mista executado três vezes com massa sintética e limpeza lógica por cancelamento.
+- [x] CPU, memória, banco, cache, fila e worker coletados durante a carga.
+- [x] Picos de RabbitMQ registrados como observação para a Etapa 24, sem otimização prematura.
+- [x] Capacidade declarada apenas com cenário, ambiente, p95 e erro, limitada ao laboratório.
+- [x] Testes executados somente em ambiente local autorizado, sem produção e sem dados reais.
+
+O aumento para 50/100 VUs, testes dedicados de login/pagamento e qualificação em ambiente semelhante à produção são novas evoluções de capacidade, não pré-requisitos retroativos para o benchmark local concluído.
 
 ## Etapa 23 — Confiabilidade de eventos
 
