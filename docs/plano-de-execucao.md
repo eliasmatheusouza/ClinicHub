@@ -264,8 +264,8 @@ As etapas 14 a 18 aplicam ao ClinicHub os conceitos de AAA, FIRST, isolamento po
 **Iniciada em 11/08/2026.**
 
 - A `main` passa a exigir pull request, uma aprovação, conversas resolvidas e histórico linear. Administradores continuam podendo agir em emergência, decisão consciente para um repositório pessoal de aprendizado.
-- Os checks obrigatórios iniciais são Backend (.NET 8), Frontend (Angular), Dependency audit, Docker images e CodeQL para C# e JavaScript/TypeScript.
-- O DAST baseline passa a executar também em pull requests para poder ser exigido como check após a primeira execução bem-sucedida.
+- Os checks obrigatórios são Backend (.NET 8), Frontend (Angular), Dependency audit, Docker images, CodeQL para C# e JavaScript/TypeScript e OWASP ZAP baseline.
+- O DAST baseline passou a executar também em pull requests e foi validado manualmente com sucesso antes de ser promovido a check obrigatório.
 - O check SonarCloud **não** será exigido até a Etapa 17 receber organização, project key e `SONAR_TOKEN`; exigir um check ainda ignorado criaria bloqueios falsos.
 
 ## Trilha de segurança da aplicação

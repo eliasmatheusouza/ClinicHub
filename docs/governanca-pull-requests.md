@@ -23,7 +23,7 @@ Esta documentação explica a proteção aplicada à branch `main` do ClinicHub.
 | `CodeQL (javascript-typescript)` | SAST do frontend. |
 | `OWASP ZAP baseline` | DAST da API em stack isolada. |
 
-Os checks devem aparecer ao menos uma vez em um pull request antes de serem selecionados pela proteção da branch. Por isso o DAST é publicado no workflow de PR e será adicionado à regra após a primeira execução aprovada.
+O DAST foi validado com sucesso em execução manual antes de ser incluído nos checks obrigatórios. Como ele também é publicado no workflow de PR, cada pull request para `main` precisa concluir o scan ZAP antes do merge.
 
 ## Ligação com SonarCloud
 
