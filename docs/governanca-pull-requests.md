@@ -67,4 +67,8 @@ Para PRs criadas pelo Dependabot, mantenha `SONAR_TOKEN` também em **Dependabot
 
 Em 12/08/2026 (UTC), a configuração foi validada nas PRs [#21](https://github.com/eliasmatheusouza/ClinicHub/pull/21) e [#6](https://github.com/eliasmatheusouza/ClinicHub/pull/6): após rebase, CI, CodeQL, DAST e `SonarCloud quality gate` foram aprovados. Elas continuam exigindo a revisão humana configurada na proteção da `main`; validação automática não substitui aprovação consciente.
 
+### Registro de manutenção: Dapper
+
+A PR [#6](https://github.com/eliasmatheusouza/ClinicHub/pull/6) foi aprovada e mesclada por **rebase** em 12/08/2026 (UTC), atualizando Dapper de `2.1.35` para `2.1.79`. O processo confirma a política na prática: atualização isolada, branch atualizada contra a `main`, todos os checks obrigatórios verdes, revisão humana e histórico linear. A PR #21, usada na mesma validação, foi fechada sem merge e não alterou o código; uma atualização futura desse pacote deve nascer em uma nova PR e passar pela mesma sequência.
+
 Se uma PR estiver vermelha, não aprove para "testar depois": leia o log, corrija em uma branch de manutenção ou feche-a e substitua-a por uma atualização coordenada. Assim o Dependabot reduz trabalho repetitivo sem transferir a responsabilidade técnica para o robô.
