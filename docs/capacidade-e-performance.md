@@ -75,17 +75,29 @@ Invoke-WebRequest http://localhost:8082/health/ready
   -UserPassword 'Admin123!'
 ```
 
-3. Se o smoke estiver verde, execute a linha de base. Ela aumenta gradualmente até 25 usuários virtuais, mantém esse pico por um minuto e dura dois minutos e trinta segundos.
+3. Se o smoke estiver verde, execute as linhas de base fria e quente. Ambas aumentam gradualmente até 25 usuários virtuais, mantêm esse pico por um minuto e duram dois minutos e trinta segundos.
 
 ```powershell
+# Limpa somente as chaves patients:list:* antes de iniciar o k6.
 ./scripts/Invoke-K6PatientsRead.ps1 `
   -Profile baseline `
   -UserEmail 'admin@clinichub.local' `
   -UserPassword 'Admin123!' `
+  -CacheState cold `
+  -CaptureResources
+
+# Autentica e consulta a página uma vez antes do k6 para pré-aquecer o cache.
+./scripts/Invoke-K6PatientsRead.ps1 `
+  -Profile baseline `
+  -UserEmail 'admin@clinichub.local' `
+  -UserPassword 'Admin123!' `
+  -CacheState warm `
   -CaptureResources
 ```
 
-O script usa a imagem oficial `grafana/k6` no Docker; não instala k6 na máquina. Os resumos JSON são criados em `artifacts/performance/`, diretório ignorado pelo Git. Com `-CaptureResources`, ele também coleta uma amostra a cada dois segundos de CPU, memória, I/O e PIDs dos contêineres da API, SQL Server, Redis, RabbitMQ e worker, em um arquivo `*.jsonl` no mesmo diretório. O intervalo e os contêineres podem ser ajustados com `-ResourceSampleIntervalSeconds` e `-ResourceContainerNames`.
+O script usa a imagem oficial `grafana/k6` no Docker; não instala k6 na máquina. No modo `cold`, ele remove apenas chaves com o prefixo `patients:list:*` do Redis, nunca usa `FLUSHDB` e nunca altera o SQL Server. A primeira leitura da carga preenche o cache e as seguintes podem se beneficiar dele; portanto, esse modo mede a transição de cache frio para quente, não uma carga em que todo request ignora cache. No modo `warm`, ele pré-aquece a mesma página autenticada antes do k6.
+
+Os resumos JSON são criados em `artifacts/performance/`, diretório ignorado pelo Git. Com `-CaptureResources`, o executor também coleta uma amostra a cada dois segundos de CPU, memória, I/O e PIDs dos contêineres da API, SQL Server, Redis, RabbitMQ e worker, em um arquivo `*.jsonl` no mesmo diretório. O intervalo e os contêineres podem ser ajustados com `-ResourceSampleIntervalSeconds` e `-ResourceContainerNames`.
 
 Em Docker Desktop no Windows, `host.docker.internal` permite que o contêiner do k6 alcance a API publicada em `localhost:8082`. Para outro alvo, informe `-BaseUrl 'http://host.docker.internal:porta'` ou a URL do ambiente autorizado.
 
@@ -124,6 +136,17 @@ O host de laboratório tinha AMD Ryzen 7 5700X (8 núcleos/16 processadores lóg
 
 Há uma capacidade **medida somente para este laboratório**: o cenário de listagem autenticada de pacientes sustentou 25 VUs por um minuto, nas três repetições, com p95 mediano de 4,49 ms e 0% de erros. Isso não é uma capacidade geral do produto: a máquina também mantinha contêineres não relacionados, não houve cache frio, escrita concorrente, proxy, réplicas ou rede de produção.
 
+### Comparação inicial: cache frio e cache quente
+
+Depois de automatizar os modos de cache, uma baseline de cada foi executada a 25 VUs, com coleta de recursos. Ambas tiveram 0% de erro e 100% dos checks aprovados.
+
+| Estado de cache | Requisições | Throughput | p95 geral | p99 geral | p95 busca |
+|---|---:|---:|---:|---:|---:|
+| Frio (transição para quente) | 2.551 | 16,90 req/s | 5,95 ms | 22,69 ms | 5,91 ms |
+| Quente (pré-aquecido) | 2.552 | 16,93 req/s | 4,20 ms | 5,11 ms | 4,20 ms |
+
+Essa diferença é coerente com o custo da primeira consulta ao SQL Server e do preenchimento de Redis. Ainda assim, há **somente uma execução por modo**: ela é uma comparação inicial, não uma mediana nem uma promessa de ganho. Para concluir esse experimento, repetir cada modo três vezes no mesmo ambiente e comparar mediana e intervalo. O modo frio remove exclusivamente `patients:list:*`; depois da primeira leitura, a própria carga aquece a chave, por isso ele não representa uma carga permanentemente sem cache.
+
 > Observação de reprodutibilidade: ao reutilizar um volume SQL Server local, a API pode iniciar antes de a recuperação do banco terminar. Antes de qualquer carga, aguarde `GET /health/ready` ficar saudável; se a API tiver terminado durante a recuperação, reinicie apenas a aplicação depois da prontidão do banco. Esse comportamento deve ser revalidado em ambiente limpo antes de tratá-lo como problema de inicialização.
 
 ### Próximos cenários mínimos
@@ -136,7 +159,7 @@ Há uma capacidade **medida somente para este laboratório**: o cenário de list
 
 ### Método de progressão e coleta
 
-Para cada cenário, execute ao menos três repetições com a mesma massa, commit e configuração. Registre a mediana e o intervalo de p95/p99, throughput e erros. Rode variantes de cache frio e cache quente quando a rota usar Redis. Comece em 25 VUs, avance para 50 e 100 somente se o nível anterior cumprir os SLOs e pare no primeiro limite violado.
+Para cada cenário, execute ao menos três repetições com a mesma massa, commit e configuração. Registre a mediana e o intervalo de p95/p99, throughput e erros. Para a listagem de pacientes, execute os modos `cold` e `warm` e compare-os sem concluir que um único cache miss representa toda a carga. Comece em 25 VUs, avance para 50 e 100 somente se o nível anterior cumprir os SLOs e pare no primeiro limite violado.
 
 Use `-CaptureResources` no executor para gerar amostras contínuas. Cada linha do `*.jsonl` contém o momento UTC, contêiner, CPU, memória, I/O e PIDs; ela pode ser importada ou analisada depois sem depender de uma fotografia após o teste. Anote também tamanho da fila e quaisquer erros ou degradações nos logs/Seq.
 
@@ -162,6 +185,6 @@ Sem cenário, ambiente e métricas, “suporta N usuários” é apenas uma esti
 ## O que esta etapa ainda não prova
 
 - O cenário atual é somente leitura autenticada; ele não mede criação de consulta, pagamento, escrita concorrente ou processamento assíncrono.
-- Há somente uma linha de base de leitura versionada; ainda não há capacidade declarada até que o perfil seja repetido, os dados do ambiente sejam capturados durante a carga e os cenários restantes sejam executados.
+- A leitura quente possui três repetições e a comparação frio/quente possui apenas uma execução por modo; ainda faltam repetições estatísticas de cache, escrita concorrente e carga mista.
 - Docker Compose local não representa réplicas, proxy, banco gerenciado, limites de recursos ou rede de produção.
 - O teste não deve rodar contra produção sem janela autorizada, massa de dados isolada, limites explícitos e plano de reversão.

@@ -5,6 +5,7 @@ const baseUrl = (__ENV.BASE_URL || 'http://host.docker.internal:8082').replace(/
 const profile = __ENV.PERF_PROFILE || 'smoke';
 const userEmail = __ENV.PERF_USER_EMAIL;
 const userPassword = __ENV.PERF_USER_PASSWORD;
+const cacheState = __ENV.PERF_CACHE_STATE || 'warm';
 const thinkTimeSeconds = Number(__ENV.PERF_THINK_TIME_SECONDS || '1');
 
 const profiles = {
@@ -26,7 +27,11 @@ if (!profiles[profile]) {
 }
 
 if (!userEmail || !userPassword) {
-  throw new Error('Defina PERF_USER_EMAIL e PERF_USER_PASSWORD antes de executar o teste.');
+    throw new Error('Defina PERF_USER_EMAIL e PERF_USER_PASSWORD antes de executar o teste.');
+}
+
+if (!['warm', 'cold'].includes(cacheState)) {
+  throw new Error(`PERF_CACHE_STATE inválido: "${cacheState}". Use "warm" ou "cold".`);
 }
 
 export const options = {
@@ -64,7 +69,7 @@ export function setup() {
 export default function (session) {
   const response = http.get(`${baseUrl}/api/patients?page=1&pageSize=20`, {
     headers: { Authorization: `Bearer ${session.accessToken}` },
-    tags: { name: 'patients_search' }
+    tags: { name: 'patients_search', cache_state: cacheState }
   });
 
   check(response, {

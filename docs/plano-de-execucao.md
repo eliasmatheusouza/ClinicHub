@@ -29,7 +29,7 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 19 | Defesa da API | ✅ Concluída | Rate limiting nas rotas de autenticação, headers HTTP, HTTPS/HSTS em Production e validação de configuração segura. |
 | 20 | Dados, auditoria e ownership | ✅ Concluída | Audit trail, policies, ownership, minimização/masking e plano de criptografia documentado e validado. |
 | 21 | Hardening de deploy | ✅ Concluída | Imagens não-root, manifesto de produção isolado, secrets externos e DAST remoto com artefato revisado e sem alertas de risco. |
-| 22 | Capacidade e performance | 🟨 Em andamento | SLOs, cenário k6 de leitura e três baselines locais a 25 VUs concluídos; telemetria de contêineres automatizada. Faltam cache frio, escrita/carga mista, investigação de picos observados e uma capacidade que represente produção. |
+| 22 | Capacidade e performance | 🟨 Em andamento | SLOs, três baselines quentes a 25 VUs e comparação inicial frio/quente concluídos; telemetria e modos de cache automatizados. Faltam repetição estatística por cache, escrita/carga mista, investigação de picos observados e ambiente representativo. |
 | 23 | Confiabilidade de eventos | ⬜ Pendente | Outbox, publicação confiável, retry limitado, DLQ, idempotência e testes de falha para notificações. |
 | 24 | Observabilidade operacional | ⬜ Pendente | OpenTelemetry, traces correlacionados, métricas, dashboards e alertas de erro, latência e fila. |
 | 25 | Testes end-to-end | ⬜ Pendente | Suite Playwright em stack isolada da CI para jornadas críticas autenticadas. |

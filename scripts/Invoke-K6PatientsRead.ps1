@@ -7,6 +7,9 @@ param(
     [string] $UserEmail,
     [Parameter(Mandatory)]
     [string] $UserPassword,
+    [ValidateSet('warm', 'cold')]
+    [string] $CacheState = 'warm',
+    [string] $RedisContainerName = 'clinichub-redis-1',
     [ValidateRange(0, 60)]
     [int] $ThinkTimeSeconds = 1,
     [switch] $CaptureResources,
@@ -40,6 +43,54 @@ if (-not (Test-Path -LiteralPath $scenarioPath)) {
 }
 
 New-Item -ItemType Directory -Path $artifactsPath -Force | Out-Null
+
+function Reset-PatientListCache {
+    $runningContainers = @(docker ps --format '{{.Names}}')
+    if ($RedisContainerName -notin $runningContainers) {
+        throw "Não foi possível preparar cache frio. Contêiner Redis ausente: $RedisContainerName."
+    }
+
+    $cacheKeys = @(docker exec $RedisContainerName redis-cli --scan --pattern 'patients:list:*')
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Não foi possível listar as chaves de cache de pacientes no Redis.'
+    }
+
+    foreach ($cacheKey in $cacheKeys) {
+        docker exec $RedisContainerName redis-cli DEL $cacheKey | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Não foi possível remover a chave de cache de pacientes: $cacheKey"
+        }
+    }
+
+    Write-Host "Cache frio preparado: $($cacheKeys.Count) chave(s) de patients:list removida(s)."
+}
+
+function Warm-PatientListCache {
+    $hostBaseUrl = $BaseUrl -replace 'host\.docker\.internal', 'localhost'
+    $loginPayload = @{ email = $UserEmail; password = $UserPassword } | ConvertTo-Json -Compress
+    $login = Invoke-RestMethod -Uri "$hostBaseUrl/api/auth/login" -Method Post -ContentType 'application/json' -Body $loginPayload
+
+    if ([string]::IsNullOrWhiteSpace($login.accessToken)) {
+        throw 'Não foi possível preparar cache quente: login não retornou access token.'
+    }
+
+    $response = Invoke-WebRequest -Uri "$hostBaseUrl/api/patients?page=1&pageSize=20" `
+        -Headers @{ Authorization = "Bearer $($login.accessToken)" } `
+        -UseBasicParsing
+
+    if ($response.StatusCode -ne 200) {
+        throw "Não foi possível preparar cache quente: listagem retornou HTTP $($response.StatusCode)."
+    }
+
+    Write-Host 'Cache quente preparado: listagem autenticada de pacientes executada antes do k6.'
+}
+
+if ($CacheState -eq 'cold') {
+    Reset-PatientListCache
+}
+else {
+    Warm-PatientListCache
+}
 
 $resourceJob = $null
 $resourcePath = Join-Path $artifactsPath $resourceFile
@@ -102,6 +153,7 @@ try {
             -e "PERF_PROFILE=$Profile" `
             -e "PERF_USER_EMAIL=$UserEmail" `
             -e "PERF_USER_PASSWORD=$UserPassword" `
+            -e "PERF_CACHE_STATE=$CacheState" `
             -e "PERF_THINK_TIME_SECONDS=$ThinkTimeSeconds" `
             --summary-export="/results/$summaryFile" -
 
