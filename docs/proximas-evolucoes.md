@@ -14,7 +14,7 @@ Este documento transforma a avaliação arquitetural do ClinicHub em um roteiro 
 
 | Etapa | Estado | Evolução | Por que agora | Evidência para concluir |
 |---:|---|---|---|---|
-| 22 | 🟨 Em andamento | Capacidade e performance | A aplicação precisa de medidas antes de qualquer afirmação sobre acessos simultâneos. | Três execuções por cenário, coleta de recursos e declaração de capacidade contextualizada. |
+| 22 | 🟨 Em andamento | Capacidade e performance | A leitura autenticada já possui três baselines locais a 25 VUs; faltam cenários e ambiente representativos antes de qualquer afirmação ampla. | Cache frio, escrita, carga mista, investigação de picos e capacidade contextualizada para ambiente semelhante ao alvo. |
 | 23 | ⬜ Planejada | Confiabilidade de eventos | Notificações não podem ser perdidas se banco e broker falharem em momentos diferentes. | Outbox, publicação confiável, retry limitado, DLQ, idempotência e testes de falha. |
 | 24 | ⬜ Planejada | Observabilidade operacional | Logs isolados não explicam uma jornada completa nem permitem alertar antes de um incidente. | Traces, métricas, dashboard e alertas de latência, erro e fila. |
 | 25 | ⬜ Planejada | Testes end-to-end | API e frontend podem estar corretos isoladamente e falhar na jornada do usuário. | Suite Playwright cobrindo fluxos críticos autenticados na CI. |

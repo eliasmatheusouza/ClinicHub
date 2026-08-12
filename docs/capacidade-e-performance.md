@@ -81,37 +81,48 @@ Invoke-WebRequest http://localhost:8082/health/ready
 ./scripts/Invoke-K6PatientsRead.ps1 `
   -Profile baseline `
   -UserEmail 'admin@clinichub.local' `
-  -UserPassword 'Admin123!'
+  -UserPassword 'Admin123!' `
+  -CaptureResources
 ```
 
-O script usa a imagem oficial `grafana/k6` no Docker; não instala k6 na máquina. Os resumos JSON são criados em `artifacts/performance/`, diretório ignorado pelo Git. Em Docker Desktop no Windows, `host.docker.internal` permite que o contêiner do k6 alcance a API publicada em `localhost:8082`. Para outro alvo, informe `-BaseUrl 'http://host.docker.internal:porta'` ou a URL do ambiente autorizado.
+O script usa a imagem oficial `grafana/k6` no Docker; não instala k6 na máquina. Os resumos JSON são criados em `artifacts/performance/`, diretório ignorado pelo Git. Com `-CaptureResources`, ele também coleta uma amostra a cada dois segundos de CPU, memória, I/O e PIDs dos contêineres da API, SQL Server, Redis, RabbitMQ e worker, em um arquivo `*.jsonl` no mesmo diretório. O intervalo e os contêineres podem ser ajustados com `-ResourceSampleIntervalSeconds` e `-ResourceContainerNames`.
+
+Em Docker Desktop no Windows, `host.docker.internal` permite que o contêiner do k6 alcance a API publicada em `localhost:8082`. Para outro alvo, informe `-BaseUrl 'http://host.docker.internal:porta'` ou a URL do ambiente autorizado.
 
 ### Como ler o resultado
 
 1. Verifique se os thresholds ficaram verdes. Um teste vermelho é dado de diagnóstico, não falha a ser escondida.
 2. Registre versão do commit, perfil, máquina/CPU/RAM, configuração Docker, duração, usuários virtuais, throughput, p95/p99 e taxa de erro.
-3. Durante a carga, observe `docker stats`, logs/latência no Seq, `/health/ready`, cache Redis, SQL Server e a fila RabbitMQ. Não atribua automaticamente uma latência à API sem observar dependências.
+3. Durante a carga, use `-CaptureResources` para preservar as amostras de recursos e observe também logs/latência no Seq, `/health/ready`, cache Redis, SQL Server e a fila RabbitMQ. Não atribua automaticamente uma latência à API sem observar dependências.
 4. Repita o mesmo perfil ao menos três vezes. Use mediana ou intervalo dos resultados, pois um único experimento é sujeito a aquecimento de cache e ruído da máquina.
 5. Só aumente a carga após o nível anterior cumprir os thresholds. Pare ao primeiro limite violado e investigue o gargalo antes de prosseguir.
 
-### Evidência inicial: linha de base local
+### Evidência local: três repetições da linha de base
 
-Em **11/08/2026 (BRT)**, o perfil `baseline` foi executado uma vez com a API pronta em Docker Compose e os thresholds aprovados. O experimento fez rampa de 0 a 25 VUs em 60 segundos, sustentou 25 VUs por 60 segundos e reduziu a carga nos 30 segundos finais.
+Em **11/08/2026 (BRT)**, o perfil `baseline` foi executado três vezes com a API pronta em Docker Compose e todos os thresholds aprovados. Cada experimento fez rampa de 0 a 25 VUs em 60 segundos, sustentou 25 VUs por 60 segundos e reduziu a carga nos 30 segundos finais.
 
-| Medida | Resultado |
-|---|---:|
-| Usuários virtuais máximos | 25 |
-| Duração do cenário | 2 min 30 s |
-| Requisições HTTP | 2.551 |
-| Throughput | 16,92 requisições/s |
-| Erros HTTP | 0,00% |
-| Checks k6 | 5.102 aprovados; 0 falhos |
-| Latência geral p95 / p99 | 4,49 ms / 6,01 ms |
-| Busca de pacientes p95 / p99 | 4,49 ms / 5,92 ms |
+| Repetição | Requisições | Throughput | Erros | p95 geral | p99 geral |
+|---:|---:|---:|---:|---:|---:|
+| 1 | 2.551 | 16,92 req/s | 0,00% | 4,49 ms | 6,01 ms |
+| 2 | 2.552 | 16,93 req/s | 0,00% | 4,16 ms | 6,97 ms |
+| 3 | 2.552 | 16,93 req/s | 0,00% | 4,74 ms | 8,82 ms |
+| **Mediana** | **2.552** | **16,93 req/s** | **0,00%** | **4,49 ms** | **6,97 ms** |
 
-O host de laboratório tinha AMD Ryzen 7 5700X (8 núcleos/16 processadores lógicos), 31,93 GiB de RAM e Docker Desktop limitado a 15,58 GiB. O resumo bruto foi salvo localmente como artefato ignorado pelo Git, pois é gerado a cada execução; os números acima são a evidência versionada.
+Em todas as execuções, os checks do k6 foram 100% aprovados e a busca de pacientes também ficou abaixo do threshold específico de 400 ms no p95. A segunda e a terceira repetições usaram `-CaptureResources`, gerando 38 amostras por serviço em cada execução (a cada dois segundos). A primeira é válida para latência/throughput, mas não possui coleta contínua de recursos porque o recurso ainda não existia.
 
-Esse é um resultado **preliminar**, não uma capacidade do produto: a máquina também mantinha contêineres não relacionados (SonarQube e outro ambiente de estudo) e `docker stats` foi consultado apenas depois do teste, não como coleta de pico. Ele prova que este cenário de leitura passou uma vez sob 25 VUs nesse laboratório; não prova comportamento em produção nem em uma carga realista.
+| Serviço | CPU mediana (rep. 2–3) | Pico de CPU observado | Pico de memória observado |
+|---|---:|---:|---:|
+| API | 4,87%–5,09% | 10,13% | 424,3 MiB |
+| SQL Server | 1,08%–1,31% | 6,82% | 1.401,9 MiB |
+| Redis | 0,56% | 3,16% | 9,2 MiB |
+| Worker | 0,00% | 0,19% | 19,0 MiB |
+| RabbitMQ | 0,22%–0,24% | 258,90% | 225,3 MiB |
+
+O RabbitMQ apresentou três picos isolados de CPU, embora sua mediana tenha permanecido abaixo de 0,25%. Após a carga, os diagnósticos mostraram zero alarmes, fila pequena, duas conexões e `run_queue` igual a 1. Como o cenário de leitura não publica eventos, esses picos devem ser investigados em um cenário de notificações antes de qualquer otimização; eles não comprovam saturação sustentada nem devem ser ignorados.
+
+O host de laboratório tinha AMD Ryzen 7 5700X (8 núcleos/16 processadores lógicos), 31,93 GiB de RAM e Docker Desktop limitado a 15,58 GiB. Os resumos k6 e as amostras de recursos são artefatos locais ignorados pelo Git; as tabelas acima são a evidência versionada.
+
+Há uma capacidade **medida somente para este laboratório**: o cenário de listagem autenticada de pacientes sustentou 25 VUs por um minuto, nas três repetições, com p95 mediano de 4,49 ms e 0% de erros. Isso não é uma capacidade geral do produto: a máquina também mantinha contêineres não relacionados, não houve cache frio, escrita concorrente, proxy, réplicas ou rede de produção.
 
 > Observação de reprodutibilidade: ao reutilizar um volume SQL Server local, a API pode iniciar antes de a recuperação do banco terminar. Antes de qualquer carga, aguarde `GET /health/ready` ficar saudável; se a API tiver terminado durante a recuperação, reinicie apenas a aplicação depois da prontidão do banco. Esse comportamento deve ser revalidado em ambiente limpo antes de tratá-lo como problema de inicialização.
 
@@ -127,13 +138,7 @@ Esse é um resultado **preliminar**, não uma capacidade do produto: a máquina 
 
 Para cada cenário, execute ao menos três repetições com a mesma massa, commit e configuração. Registre a mediana e o intervalo de p95/p99, throughput e erros. Rode variantes de cache frio e cache quente quando a rota usar Redis. Comece em 25 VUs, avance para 50 e 100 somente se o nível anterior cumprir os SLOs e pare no primeiro limite violado.
 
-Durante a carga, mantenha em uma janela separada:
-
-```powershell
-docker stats clinichub-api-1 clinichub-sqlserver-1 clinichub-redis-1 clinichub-rabbitmq-1
-```
-
-Anote o pico de CPU e memória, tamanho da fila e quaisquer erros ou degradações nos logs/Seq. A captura depois do teste é apenas uma fotografia e não substitui essa observação contínua.
+Use `-CaptureResources` no executor para gerar amostras contínuas. Cada linha do `*.jsonl` contém o momento UTC, contêiner, CPU, memória, I/O e PIDs; ela pode ser importada ou analisada depois sem depender de uma fotografia após o teste. Anote também tamanho da fila e quaisquer erros ou degradações nos logs/Seq.
 
 ### Métricas obrigatórias
 
