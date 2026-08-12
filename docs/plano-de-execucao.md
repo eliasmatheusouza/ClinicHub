@@ -29,7 +29,7 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 19 | Defesa da API | ✅ Concluída | Rate limiting nas rotas de autenticação, headers HTTP, HTTPS/HSTS em Production e validação de configuração segura. |
 | 20 | Dados, auditoria e ownership | ✅ Concluída | Audit trail, policies, ownership, minimização/masking e plano de criptografia documentado e validado. |
 | 21 | Hardening de deploy | ✅ Concluída | Imagens não-root, manifesto de produção isolado, secrets externos e DAST remoto com artefato revisado e sem alertas de risco. |
-| 22 | Capacidade e performance | ⬜ Pendente | Definir SLOs, criar testes de carga e declarar capacidade com métricas reproduzíveis. |
+| 22 | Capacidade e performance | 🟨 Em andamento | SLOs, cenário k6 de leitura autenticada e primeira linha de base local definidos; faltam repetições, cenários de escrita/mistos, telemetria de recursos e uma declaração de capacidade reproduzível. |
 
 ## Próximas etapas priorizadas
 
