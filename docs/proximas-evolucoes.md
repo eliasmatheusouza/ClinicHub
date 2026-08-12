@@ -124,6 +124,6 @@ Manter diagramas C4 de contexto, contêineres e componentes; incluir fluxos de a
 
 ## Etapa 31 — Evolução funcional
 
-Entregar por incrementos: gestão segura de equipe e convites, portal do paciente, cancelamento/reagendamento, reenvio de confirmação e notificações por provedor real. Cada recurso novo deve passar por domínio, autorização, privacidade, teste e operação antes de ser considerado concluído.
+Entregar por incrementos: gestão segura de equipe e convites, portal do paciente, cancelamento/reagendamento, reenvio de confirmação e notificações por provedor real. Cada recurso novo deve passar por domínio, autorização, privacidade, teste e operação antes de ser considerado concluído. O catálogo de módulos, regras de negócio e critérios de aceite está em [Funcionalidades de Produto](funcionalidades-produto-saas-medico.md).
 
 **Critério de conclusão:** cada incremento possui caso de uso, política de acesso, testes e documentação de operação; integrações externas possuem sandbox, timeout e tratamento de falha.
