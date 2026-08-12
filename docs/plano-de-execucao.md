@@ -30,6 +30,15 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 20 | Dados, auditoria e ownership | ✅ Concluída | Audit trail, policies, ownership, minimização/masking e plano de criptografia documentado e validado. |
 | 21 | Hardening de deploy | ✅ Concluída | Imagens não-root, manifesto de produção isolado, secrets externos e DAST remoto com artefato revisado e sem alertas de risco. |
 | 22 | Capacidade e performance | 🟨 Em andamento | SLOs, cenário k6 de leitura autenticada e primeira linha de base local definidos; faltam repetições, cenários de escrita/mistos, telemetria de recursos e uma declaração de capacidade reproduzível. |
+| 23 | Confiabilidade de eventos | ⬜ Pendente | Outbox, publicação confiável, retry limitado, DLQ, idempotência e testes de falha para notificações. |
+| 24 | Observabilidade operacional | ⬜ Pendente | OpenTelemetry, traces correlacionados, métricas, dashboards e alertas de erro, latência e fila. |
+| 25 | Testes end-to-end | ⬜ Pendente | Suite Playwright em stack isolada da CI para jornadas críticas autenticadas. |
+| 26 | Autorização por recurso | ⬜ Pendente | Policies por tenant, clínica, profissional e paciente; filtros de ownership no servidor e testes de acesso negado. |
+| 27 | Privacidade e LGPD aplicada | ⬜ Pendente | Inventário de dados, retenção, exportação/anonimização sob regras, masking e auditoria de acesso. |
+| 28 | Cloud e infraestrutura como código | ⬜ Pendente | Ambiente didático repetível com IaC, secrets, orçamento, backup/restore e destruição segura. |
+| 29 | Robustez do frontend | ⬜ Pendente | Guards, tratamento global de erro, estados acessíveis, sessão e testes de componentes Angular. |
+| 30 | Arquitetura ensinável | ⬜ Pendente | Diagramas C4 atualizados e ADRs para decisões relevantes de arquitetura. |
+| 31 | Evolução funcional do produto | ⬜ Pendente | Entregas incrementais de agenda dinâmica, portal, PEP, documentos clínicos e notificações reais com regras de negócio, segurança e operação. |
 
 ## Próximas etapas priorizadas
 
