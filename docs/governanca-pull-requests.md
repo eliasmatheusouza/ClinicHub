@@ -43,3 +43,24 @@ branch de trabalho -> pull request -> revisão + checks aprovados -> merge linea
 ```
 
 Não envie mudanças diretamente para `main` no fluxo normal. Crie uma branch, abra o PR, trate os comentários e use a página do GitHub para confirmar cada check antes do merge.
+
+## Atualizações do Dependabot
+
+Uma pull request do Dependabot atualiza uma dependência, mas **não é uma autorização para fazer merge automaticamente**. A política do ClinicHub é tratar atualizações por nível de risco e nunca mesclar várias atualizações incompatíveis de uma mesma família ao mesmo tempo.
+
+| Tipo de atualização | Como tratar |
+|---|---|
+| Patch dentro da mesma versão principal | Candidata a aprovação rápida, depois de rebase e de todos os checks atuais verdes. Ainda revise o diff e as notas de segurança. |
+| Minor ou major de biblioteca | Faça revisão do changelog e compatibilidade. Atualize em PR dedicado, valide testes e comportamento do módulo afetado. |
+| Framework/runtime (EF Core, .NET, Angular, TypeScript) | Não aprove PRs isolados de famílias correlatas. Planeje uma atualização coordenada em uma branch própria, alinhe as versões e corrija incompatibilidades. |
+| GitHub Actions | Trate como dependência da cadeia de entrega: atualize uma ação por vez, valide toda a CI e confira mudanças de permissões ou de comportamento. |
+
+Antes de aprovar qualquer Dependabot PR, confirme:
+
+1. a branch não está marcada como `BEHIND`;
+2. os oito checks obrigatórios atuais estão verdes, incluindo `SonarCloud quality gate`;
+3. o diff altera somente os manifestos/lockfiles esperados;
+4. não existe outra PR concorrente que atualize o mesmo pacote ou uma família incompatível;
+5. para uma atualização major, as notas de migração foram lidas e o fluxo afetado foi exercitado.
+
+Se uma PR estiver vermelha, não aprove para "testar depois": leia o log, corrija em uma branch de manutenção ou feche-a e substitua-a por uma atualização coordenada. Assim o Dependabot reduz trabalho repetitivo sem transferir a responsabilidade técnica para o robô.
