@@ -6,6 +6,9 @@ obj/
 *.suo
 .env
 .env.production
+.env.sonarqube
+.sonarqube/
+artifacts/
 zap-reports/
 TestResults/
 coverage/

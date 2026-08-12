@@ -146,6 +146,7 @@ O escopo original foi concluído. A evolução recomendada para transformar o pr
 - [Avaliação de maturidade arquitetural](docs/avaliacao-de-maturidade.md)
 - [Plano do ecossistema de portfólio](docs/plano-ecossistema-portfolio.md)
 - [Trilha de qualidade e Platform Engineering](docs/plano-de-execucao.md#trilha-de-qualidade-e-platform-engineering)
+- [SonarQube local e Quality Gate](docs/sonarqube-quality-gate.md)
 - [AWS para aprendizado gratuito e seguro](docs/aws-aprendizado-gratuito.md)
 - [Capacidade, performance e critérios de carga](docs/capacidade-e-performance.md)
 - [Auditoria, autorização e evolução do ownership](docs/auditoria-e-autorizacao.md)

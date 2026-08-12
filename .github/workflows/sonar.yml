@@ -1,0 +1,58 @@
+name: Sonar Quality Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  sonarcloud:
+    name: SonarCloud quality gate
+    if: ${{ vars.SONAR_ORGANIZATION != '' && vars.SONAR_PROJECT_KEY != '' }}
+    runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
+      SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore scanner and dependencies
+        run: |
+          dotnet tool restore
+          dotnet restore ClinicHub.sln
+
+      - name: Begin SonarCloud analysis
+        run: |
+          dotnet sonarscanner begin \
+            /k:"$SONAR_PROJECT_KEY" \
+            /o:"$SONAR_ORGANIZATION" \
+            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.cs.opencover.reportsPaths="artifacts/sonarqube-tests/**/coverage.opencover.xml" \
+            /d:sonar.cs.vstest.reportsPaths="artifacts/sonarqube-tests/*.trx" \
+            /d:sonar.exclusions="**/bin/**,**/obj/**,**/node_modules/**,**/dist/**,**/TestResults/**" \
+            /d:sonar.scanner.scanAll=false \
+            /d:sonar.qualitygate.wait=true \
+            /d:sonar.qualitygate.timeout=300
+
+      - name: Build and test with coverage
+        run: |
+          dotnet build ClinicHub.sln --configuration Release --no-restore --no-incremental
+          dotnet test ClinicHub.sln --configuration Release --no-restore --collect "XPlat Code Coverage" --logger "trx" --settings coverlet.sonarqube.runsettings --results-directory artifacts/sonarqube-tests
+
+      - name: Publish analysis and wait for Quality Gate
+        run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"

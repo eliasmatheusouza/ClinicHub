@@ -2,6 +2,8 @@
 **/obj/
 .git/
 .env
+.sonarqube/
+artifacts/
 frontend/node_modules/
 frontend/clinichub-web/node_modules/
 frontend/clinichub-web/dist/

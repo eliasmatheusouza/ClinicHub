@@ -22,7 +22,7 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 14 | Testes de fluxos críticos | ✅ Concluída | Testes AAA para cadastro/confirmação de e-mail e regras do agregado `User`; cobertura restaurada para 74,57% no Domain e 74,76% na Application. |
 | 15 | Gate de cobertura | ✅ Concluída | Script de quality gate integrado à CI; falha abaixo de 70% nas camadas Domain e Application. |
 | 16 | Relatórios e auditorias de CI | ✅ Concluída | Resultados TRX publicados, auditorias .NET/NPM validadas, CodeQL aprovado e Dependabot sem alertas abertos. |
-| 17 | Análise estática e Quality Gate | ⬜ Pendente | Integrar SonarQube/SonarCloud e validar qualidade de código novo na pipeline. |
+| 17 | Análise estática e Quality Gate | 🟨 Em andamento | Laboratório SonarQube, scanner e workflow SonarCloud versionados; falta configurar organização/token e validar o gate remoto. |
 | 18 | Governança de pull requests | ⬜ Pendente | Proteger `main`, exigir checks aprovados e impedir merge fora do fluxo de revisão. |
 | 19 | Defesa da API | ✅ Concluída | Rate limiting nas rotas de autenticação, headers HTTP, HTTPS/HSTS em Production e validação de configuração segura. |
 | 20 | Dados, auditoria e ownership | ✅ Concluída | Audit trail, policies, ownership, minimização/masking e plano de criptografia documentado e validado. |
@@ -248,6 +248,16 @@ As etapas 14 a 18 aplicam ao ClinicHub os conceitos de AAA, FIRST, isolamento po
 - Adicionado Dependabot semanal para NuGet, NPM e GitHub Actions. Os alertas e as atualizações automáticas de segurança também foram habilitados no repositório.
 - A execução remota final [CI #31452721365](https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31452721365) aprovou backend, frontend, auditoria e imagens Docker; [CodeQL #31452721355](https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31452721355) também foi aprovado.
 - A revisão encontrou uma exposição real de e-mail/token de confirmação nos logs do modo didático. Ela foi removida, e a reanálise CodeQL ficou sem alertas abertos. Seis dependências transitivas de desenvolvimento alertadas pelo Dependabot foram atualizadas via `overrides` mínimos no NPM; a reindexação final ficou sem alertas Dependabot abertos.
+
+### Etapa 17 — Análise estática e Quality Gate
+
+**Em andamento em 11/08/2026.**
+
+- Adicionados laboratório SonarQube Community Build com PostgreSQL, scanner .NET fixado em `11.2.1`, script local e workflow remoto condicional para SonarQube Cloud.
+- A análise local completa foi aprovada pelo Quality Gate padrão em aproximadamente 90 segundos, com 49,1% de cobertura geral, 0 bugs e 0% de duplicação. Ela também revelou 44 code smells, 2 vulnerabilidades e 8 security hotspots legados, registrados para triagem em vez de serem ocultados.
+- A integração gera Cobertura e OpenCover a partir do Coverlet. O SonarQube importa OpenCover; a CI continua consumindo Cobertura. Os relatórios de cada execução ficam isolados em `artifacts/sonarqube-tests/`.
+- O scanner desta etapa limita-se à solução .NET para não analisar dependências transitivas do frontend. A análise e cobertura Angular ficam como evolução condicionada a um relatório LCOV estável.
+- Para concluir a etapa falta configurar a organização/projeto e o secret `SONAR_TOKEN` no SonarQube Cloud, executar o workflow remoto e confirmar o bloqueio do job quando o Quality Gate de código novo reprovar.
 
 ## Trilha de segurança da aplicação
 
