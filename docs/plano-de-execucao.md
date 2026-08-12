@@ -258,6 +258,7 @@ As etapas 14 a 18 aplicam ao ClinicHub os conceitos de AAA, FIRST, isolamento po
 - A integração gera Cobertura e OpenCover a partir do Coverlet. O SonarQube importa OpenCover; a CI continua consumindo Cobertura. Os relatórios de cada execução ficam isolados em `artifacts/sonarqube-tests/`.
 - O scanner desta etapa limita-se à solução .NET para não analisar dependências transitivas do frontend. A análise e cobertura Angular ficam como evolução condicionada a um relatório LCOV estável.
 - Para concluir a etapa falta configurar a organização/projeto e o secret `SONAR_TOKEN` no SonarQube Cloud, executar o workflow remoto e confirmar o bloqueio do job quando o Quality Gate de código novo reprovar.
+- O procedimento seguro e gratuito para o repositório público está em [configurar SonarQube Cloud gratuito](configurar-sonarcloud-gratuito.md).
 
 ### Etapa 18 — Governança de pull requests
 

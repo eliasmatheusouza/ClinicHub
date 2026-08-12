@@ -63,6 +63,8 @@ O workflow [sonar.yml](../.github/workflows/sonar.yml) está versionado e perman
 
 O scanner usa `sonar.qualitygate.wait=true`; portanto, o job retorna erro quando o Quality Gate remoto reprova a análise. SonarQube Cloud também publica o status do gate como check no pull request.
 
+Para configurar a conta gratuita, os tokens e as variáveis do GitHub passo a passo, consulte [configurar SonarQube Cloud gratuito](configurar-sonarcloud-gratuito.md).
+
 ## Limites e decisões conscientes
 
 - O laboratório local serve para prática e não substitui o check remoto em PR.
