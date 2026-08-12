@@ -26,7 +26,7 @@ Esta é a fotografia da implementação em 12/08/2026 (UTC). Ela separa claramen
 | Análise local .NET | Concluída | Quality Gate padrão aprovado; 49,1% de cobertura geral, 0 bugs e 0% de duplicação. |
 | Achados locais | Registrados | 44 code smells, 2 vulnerabilidades e 8 security hotspots legados aguardam triagem; o gate padrão não os apaga. |
 | Workflow remoto | Concluído | [Execução #31553134108](https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31553134108) aprovada: build, testes, cobertura, análise e Quality Gate. |
-| `SONAR_TOKEN` | Concluído | Criado com expiração de 90 dias e guardado exclusivamente como Secret do GitHub; nunca é versionado. |
+| `SONAR_TOKEN` | Concluído | Rotacionado em 12/08/2026 (UTC), expira em 09/09/2026 e é guardado exclusivamente nos cofres de secrets do GitHub; nunca é versionado. |
 | `SONAR_ORGANIZATION` | Concluído | Variável de repositório com a chave `eliasmatheusouza`. |
 | `SONAR_PROJECT_KEY` | Concluído | Variável de repositório com a chave `eliasmatheusouza_ClinicHub`. |
 | Proteção da `main` | Ativa | PR, uma aprovação, conversas resolvidas, histórico linear e checks de CI, CodeQL, DAST e SonarCloud são obrigatórios. |
@@ -60,7 +60,7 @@ Não crie uma organização manual desconectada do GitHub: a integração vincul
 3. Gere o token e copie-o imediatamente. Ele só é exibido uma vez.
 4. Cole-o diretamente no GitHub no próximo passo. Não o salve em `.env`, código, commit, captura de tela ou chat.
 
-Para o plano Free, um Personal Access Token é o mecanismo normal. O token usado neste laboratório expira em 08/11/2026; antes dessa data, gere um novo e atualize apenas o Secret no GitHub. Tokens inativos também podem ser removidos pelo SonarQube Cloud.
+Para o plano Free, um Personal Access Token é o mecanismo normal. O token ativo deste laboratório expira em 09/09/2026; antes dessa data, gere um novo, atualize os secrets de **Actions** e de **Dependabot**, valide uma execução manual e só então revogue o anterior. Tokens inativos também podem ser removidos pelo SonarQube Cloud.
 
 ## 4. Cadastrar secret e variáveis no GitHub
 

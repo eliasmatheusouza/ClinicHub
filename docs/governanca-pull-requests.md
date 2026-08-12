@@ -65,4 +65,6 @@ Antes de aprovar qualquer Dependabot PR, confirme:
 
 Para PRs criadas pelo Dependabot, mantenha `SONAR_TOKEN` também em **Dependabot secrets**. O bot não recebe o Actions secret comum, portanto esse segredo específico é necessário para que o check SonarCloud obrigatório seja executado.
 
+Em 12/08/2026 (UTC), a configuração foi validada nas PRs [#21](https://github.com/eliasmatheusouza/ClinicHub/pull/21) e [#6](https://github.com/eliasmatheusouza/ClinicHub/pull/6): após rebase, CI, CodeQL, DAST e `SonarCloud quality gate` foram aprovados. Elas continuam exigindo a revisão humana configurada na proteção da `main`; validação automática não substitui aprovação consciente.
+
 Se uma PR estiver vermelha, não aprove para "testar depois": leia o log, corrija em uma branch de manutenção ou feche-a e substitua-a por uma atualização coordenada. Assim o Dependabot reduz trabalho repetitivo sem transferir a responsabilidade técnica para o robô.

@@ -91,6 +91,8 @@ Workflows disparados por uma pull request do Dependabot não recebem os **Action
 
 Não contorne essa limitação trocando o workflow para `pull_request_target` apenas para expor credenciais: PRs são código não confiável e a mudança ampliaria a superfície de ataque. Depois de cadastrar o segredo, mande o Dependabot rebasear a PR e confirme o check verde normalmente.
 
+**Evidência prática (12/08/2026 UTC):** o token foi rotacionado nos cofres de Actions e Dependabot, a execução manual [#31554414398](https://github.com/eliasmatheusouza/ClinicHub/actions/runs/31554414398) foi aprovada e as PRs Dependabot [#21](https://github.com/eliasmatheusouza/ClinicHub/pull/21) e [#6](https://github.com/eliasmatheusouza/ClinicHub/pull/6) foram atualizadas e concluíram todos os checks obrigatórios. Isso demonstra o fluxo sem expor o valor da credencial.
+
 Para configurar a conta gratuita, os tokens e as variáveis do GitHub passo a passo, consulte [configurar SonarQube Cloud gratuito](configurar-sonarcloud-gratuito.md).
 
 O documento de configuração também mantém a fotografia do que já foi validado localmente e do que ainda depende do SonarQube Cloud.
