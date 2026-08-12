@@ -146,6 +146,7 @@ O escopo original foi concluído. O roteiro priorizado para aproximar o ClinicHu
 - [Capacidade, performance e critérios de carga](docs/capacidade-e-performance.md)
 - [Roteiro de próximas evoluções e critérios de conclusão](docs/proximas-evolucoes.md)
 - [Funcionalidades de produto para a visão SaaS médica](docs/funcionalidades-produto-saas-medico.md)
+- [Decisões arquiteturais: por que cada tecnologia foi escolhida](docs/decisoes-arquiteturais.md)
 - [Auditoria, autorização e evolução do ownership](docs/auditoria-e-autorizacao.md)
 - [Proteção de dados, masking e plano de criptografia](docs/protecao-de-dados.md)
 - [Hardening de deploy, secrets e DAST](docs/hardening-deploy.md)

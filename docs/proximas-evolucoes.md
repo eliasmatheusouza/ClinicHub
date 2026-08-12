@@ -118,7 +118,7 @@ Adicionar guards e autorização visual sem confiar nela como proteção final, 
 
 ## Etapa 30 — Arquitetura ensinável
 
-Manter diagramas C4 de contexto, contêineres e componentes; incluir fluxos de autenticação, agendamento e notificação. Criar ADRs curtos para decisões que tenham alternativas relevantes, como Dapper versus EF Core, JWT, RabbitMQ, Redis, Outbox e cache.
+Manter diagramas C4 de contexto, contêineres e componentes; incluir fluxos de autenticação, agendamento e notificação. Criar ADRs curtos para decisões que tenham alternativas relevantes, como Dapper versus EF Core, JWT, RabbitMQ, Redis, Outbox e cache. O [catálogo de decisões arquiteturais](decisoes-arquiteturais.md) explica as escolhas atuais e complementa os ADRs.
 
 **Critério de conclusão:** diagramas refletem o código atual, ADRs explicam contexto/decisão/consequências e o README aponta para o material.
 

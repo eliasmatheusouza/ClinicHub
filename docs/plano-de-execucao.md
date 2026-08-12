@@ -37,7 +37,7 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 | 27 | Privacidade e LGPD aplicada | ⬜ Pendente | Inventário de dados, retenção, exportação/anonimização sob regras, masking e auditoria de acesso. |
 | 28 | Cloud e infraestrutura como código | ⬜ Pendente | Ambiente didático repetível com IaC, secrets, orçamento, backup/restore e destruição segura. |
 | 29 | Robustez do frontend | ⬜ Pendente | Guards, tratamento global de erro, estados acessíveis, sessão e testes de componentes Angular. |
-| 30 | Arquitetura ensinável | ⬜ Pendente | Diagramas C4 atualizados e ADRs para decisões relevantes de arquitetura. |
+| 30 | Arquitetura ensinável | 🟨 Em andamento | Catálogo didático das escolhas atuais criado; faltam diagramas C4 atualizados e ADRs para novas decisões relevantes. |
 | 31 | Evolução funcional do produto | ⬜ Pendente | Entregas incrementais de agenda dinâmica, portal, PEP, documentos clínicos e notificações reais com regras de negócio, segurança e operação. |
 
 ## Próximas etapas priorizadas
