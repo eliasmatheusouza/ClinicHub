@@ -117,17 +117,23 @@ Esse é um resultado **preliminar**, não uma capacidade do produto: a máquina 
 
 ### Próximos cenários mínimos
 
-### Cenários mínimos
-
 1. Login e renovação de sessão, com política de rate limiting considerada separadamente.
 2. Listagem paginada e filtrada de pacientes, com cache frio e quente.
 3. Criação, confirmação e reagendamento de consulta.
 4. Registro de pagamento e consulta de relatório financeiro.
 5. Carga mista, próxima ao comportamento real de uma recepção.
 
-### Níveis iniciais de experimento
+### Método de progressão e coleta
 
-Executar em ambiente semelhante ao que se deseja avaliar, aumentando gradualmente usuários virtuais: 20, 50, 100 e além. Cada nível só deve avançar após avaliar os resultados anteriores.
+Para cada cenário, execute ao menos três repetições com a mesma massa, commit e configuração. Registre a mediana e o intervalo de p95/p99, throughput e erros. Rode variantes de cache frio e cache quente quando a rota usar Redis. Comece em 25 VUs, avance para 50 e 100 somente se o nível anterior cumprir os SLOs e pare no primeiro limite violado.
+
+Durante a carga, mantenha em uma janela separada:
+
+```powershell
+docker stats clinichub-api-1 clinichub-sqlserver-1 clinichub-redis-1 clinichub-rabbitmq-1
+```
+
+Anote o pico de CPU e memória, tamanho da fila e quaisquer erros ou degradações nos logs/Seq. A captura depois do teste é apenas uma fotografia e não substitui essa observação contínua.
 
 ### Métricas obrigatórias
 
@@ -137,6 +143,8 @@ Executar em ambiente semelhante ao que se deseja avaliar, aumentando gradualment
 - CPU e memória da API, worker e banco;
 - tempo de consulta SQL, taxa de cache e tamanho de fila RabbitMQ;
 - saturação de conexões e comportamento após falhas.
+
+O protocolo didático completo, os cenários de escrita/mistura e o checklist de conclusão estão em [Próximas Evoluções](proximas-evolucoes.md#etapa-22--capacidade-e-performance).
 
 ### Critério de capacidade declarada
 

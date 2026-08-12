@@ -125,14 +125,7 @@ O workflow [CI](.github/workflows/ci.yml) é executado em todo push, pull reques
 
 ## Próximas evoluções
 
-O escopo original foi concluído. A evolução recomendada para transformar o projeto em uma aplicação pronta para uso segue esta ordem:
-
-1. **Qualidade e segurança:** tornar a meta de cobertura de 70% obrigatória na CI, corrigir dependências vulneráveis, aplicar rate limiting, HTTPS e gestão de secrets.
-2. **Resiliência:** adicionar retry de conexão, DLQ e observabilidade para o worker RabbitMQ; criar reenvio de confirmação de e-mail para contas pendentes.
-3. **Produção:** tornar a URL da API configurável em runtime, publicar imagens em registry e implantar frontend, API e infraestrutura em ambiente público.
-4. **Gestão de equipe:** permitir que administradores criem e gerenciem médicos e recepcionistas com fluxo seguro de convite.
-5. **Portal do paciente:** permitir consultar, cancelar e reagendar as próprias consultas sem acesso às áreas administrativas.
-6. **Notificações reais e produto:** integrar SMTP/serviço de e-mail, SMS ou WhatsApp; adicionar dashboard com métricas e disponibilidade médica.
+O escopo original foi concluído. O roteiro priorizado para aproximar o ClinicHub de uma aplicação operável começa por capacidade medida, confiabilidade de eventos e observabilidade; depois avança para testes end-to-end, autorização por recurso, LGPD aplicada, cloud com IaC, robustez do frontend e evolução funcional. Cada etapa possui objetivo, conceito, checklist e critério de conclusão em [Próximas Evoluções](docs/proximas-evolucoes.md).
 
 ## Documentação
 
@@ -151,6 +144,7 @@ O escopo original foi concluído. A evolução recomendada para transformar o pr
 - [Governança de pull requests](docs/governanca-pull-requests.md)
 - [AWS para aprendizado gratuito e seguro](docs/aws-aprendizado-gratuito.md)
 - [Capacidade, performance e critérios de carga](docs/capacidade-e-performance.md)
+- [Roteiro de próximas evoluções e critérios de conclusão](docs/proximas-evolucoes.md)
 - [Auditoria, autorização e evolução do ownership](docs/auditoria-e-autorizacao.md)
 - [Proteção de dados, masking e plano de criptografia](docs/protecao-de-dados.md)
 - [Hardening de deploy, secrets e DAST](docs/hardening-deploy.md)

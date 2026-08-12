@@ -33,18 +33,19 @@ Este documento acompanha a implementação incremental do ClinicHub. Cada etapa 
 
 ## Próximas etapas priorizadas
 
-Esta é a ordem de continuidade aprovada após a conclusão das etapas 16 e 21. Cada item só avança após sua evidência técnica ser registrada.
+A continuidade foi atualizada após as etapas de Quality Gate, governança de pull requests e hardening. Cada item só avança após sua evidência técnica ser registrada.
 
 | Prioridade | Trabalho | Resultado esperado |
 |---:|---|---|
-| 1 | **Etapa 17 — SonarQube/SonarCloud e Quality Gate** | Analisar código novo para bugs, vulnerabilidades, duplicação e cobertura; falhar a CI quando o padrão não for atendido. |
-| 2 | **Etapa 18 — Governança de Pull Requests** | Proteger `main`, exigir revisão e tornar CI, CodeQL, DAST e Quality Gate obrigatórios antes do merge. |
-| 3 | **Etapa 22 — Capacidade e performance** | Criar cenários k6, definir SLOs e medir p95/p99, erros, throughput, banco, cache e filas antes de declarar capacidade simultânea. |
-| 4 | **Resiliência de eventos** | Implementar outbox, retry limitado, DLQ e idempotência para que notificações não sejam perdidas silenciosamente. |
-| 5 | **Produção operada** | Publicar imagens em registry, aplicar IaC, configurar cloud, backups/restores, alertas, SMTP real e testes end-to-end autenticados. |
-| 6 | **Evolução funcional** | Completar portal do paciente, gestão de equipe, reenvio de confirmação e notificações reais. |
+| 1 | **Etapa 22 — Capacidade e performance** | Repetir e ampliar cenários k6; medir p95/p99, erros, throughput, banco, cache, fila e recursos durante a carga antes de declarar capacidade. |
+| 2 | **Etapa 23 — Confiabilidade de eventos** | Implementar outbox, retry limitado, DLQ e idempotência para que notificações não sejam perdidas silenciosamente. |
+| 3 | **Etapa 24 — Observabilidade operacional** | Correlacionar traces e métricas, publicar dashboard e testar alertas de erro, latência e fila. |
+| 4 | **Etapa 25 — Testes end-to-end** | Cobrir jornadas autenticadas no browser em stack isolada da CI. |
+| 5 | **Etapas 26 e 27 — Autorização e LGPD aplicada** | Restringir acesso por recurso/ownership e implementar ciclo de vida responsável de dados sensíveis. |
+| 6 | **Etapa 28 — Cloud e IaC** | Criar ambiente didático repetível, com secrets, orçamento, backup/restore e destruição segura. |
+| 7 | **Etapas 29 a 31 — Frontend, documentação e produto** | Reforçar UX/acessibilidade, manter arquitetura ensinável e evoluir recursos de negócio por incrementos. |
 
-O detalhamento didático, exercícios e critérios de conclusão de cada frente estão no [plano de ensino completo](plano-de-ensino-completo.md).
+O detalhamento didático, exercícios e critérios de conclusão de cada frente estão no [plano de ensino completo](plano-de-ensino-completo.md) e no [roteiro de próximas evoluções](proximas-evolucoes.md).
 
 ## Registro de confirmações
 
